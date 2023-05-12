@@ -2,7 +2,9 @@
 
 /node_modules
 .eslintcache
-/out/
+
+# Build
+/dist/
 
 # Misc
 .DS_Store
