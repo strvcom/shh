@@ -1,0 +1,7 @@
+{
+  "name": "@strv/secrets",
+  "version": "0.1.0",
+  "description": "Easy, secure environment variables manager",
+  "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
+  "license": "MIT"
+}
