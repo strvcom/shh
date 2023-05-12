@@ -1,7 +1,7 @@
 {
   "name": "@strv/secrecy",
   "version": "0.1.0",
-  "description": "Simple environment variable manager.",
+  "description": "Simple environment manager.",
   "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
   "license": "MIT",
   "main": "./dist/index.js",
