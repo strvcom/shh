@@ -1,11 +1,12 @@
+import fs from 'fs'
+import path from 'path'
 import { Command } from 'commander'
 import { globSync } from 'glob'
 import log from 'log-update'
 import inquirer from 'inquirer'
 
 import { getConfig, SecrecyConfig } from '../lib/config'
-import path from 'path'
-import fs from 'fs'
+import { checkGitCryptInstall, checkSecretFile } from '../lib/check'
 
 interface Options {
   secret: string
@@ -33,7 +34,7 @@ const getEnvironments = (config: SecrecyConfig) => {
       throw new Error(`Could not resolve enviromnet name for file: "${file}"`)
     }
 
-    return { file, name }
+    return { file, name, relative: path.relative(config.cwd, file) }
   })
 
   return environments
@@ -58,7 +59,7 @@ const selectEnvironment = async (environments: ReturnType<typeof getEnvironments
 const command = new Command()
   .option('-s, --secret <path>', 'The path to the secret file')
   .option('-e, --environment <name>', 'The environment to install')
-  .option('-c, --copy', 'Copy environment to target instead of symlinking it')
+  .option('-c, --copy', 'Copy env file instead of symlinking it')
   .option('-t, --target <path>', 'The path to the managed env target')
   .action(async (options: Options) => {
     const config = getConfig(options)
@@ -70,6 +71,9 @@ const command = new Command()
       throw new Error(`File inexistant for environment "${selected}".`)
     }
 
+    checkGitCryptInstall()
+    checkSecretFile(config)
+
     const paths = {
       source: environment.file,
       target: path.resolve(config.cwd, config.target),
@@ -79,13 +83,22 @@ const command = new Command()
       throw new Error(`Invalid target env file path: "${paths.target}"`)
     }
 
-    // Ensure it's clear.
-    fs.rmSync(paths.target, { force: true })
+    log(`Creating ${config.target} symlink to ${environment.relative}`)
 
-    // Install env file.
-    config.copy
-      ? fs.copyFileSync(paths.source, paths.target)
-      : fs.symlinkSync(paths.source, paths.target)
+    try {
+      // Ensure it's clear.`
+      fs.rmSync(paths.target, { force: true })
+
+      // Install env file.
+      config.copy
+        ? fs.copyFileSync(paths.source, paths.target)
+        : fs.symlinkSync(paths.source, paths.target)
+    } catch (err) {
+      console.error(err)
+      throw new Error(`Failed creating ${config.target} symlink to ${environment.relative}`)
+    }
+
+    log(`Creating ${config.target} symlink to ${environment.relative}: ok`)
   })
 
 export { command }

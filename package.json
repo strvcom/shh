@@ -20,7 +20,7 @@
     "commander": "^10.0.1",
     "glob": "^10.2.3",
     "inquirer": "^8.0.0",
-    "log-update": "^5.0.1"
+    "log-update": "4.x.x"
   },
   "resolutions": {
     "wrap-ansi": "^7.x.x",

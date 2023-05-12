@@ -30,7 +30,7 @@ interface SecrecyConfig {
 
 const defaults = {
   copy: false,
-  target: './.env',
+  target: '.env',
   secret: './env/secret',
   environments: './env/.env.encrypted.[name]',
 }
