@@ -37,6 +37,10 @@ const getEnvironments = (config: SecrecyConfig) => {
     return { file, name, relative: path.relative(config.cwd, file) }
   })
 
+  if (!environments.length) {
+    throw new Error(`No environment found at "${config.environments}"`)
+  }
+
   return environments
 }
 
