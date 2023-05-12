@@ -5,6 +5,7 @@ import inquirer from 'inquirer'
 
 import { getConfig, SecrecyConfig } from '../lib/config'
 import path from 'path'
+import fs from 'fs'
 
 interface Options {
   secret: string
@@ -57,6 +58,8 @@ const selectEnvironment = async (environments: ReturnType<typeof getEnvironments
 const command = new Command()
   .option('-s, --secret <path>', 'The path to the secret file')
   .option('-e, --environment <name>', 'The environment to install')
+  .option('-c, --copy', 'Copy environment to target instead of symlinking it')
+  .option('-t, --target <path>', 'The path to the managed env target')
   .action(async (options: Options) => {
     const config = getConfig(options)
     const environments = getEnvironments(config)
@@ -66,6 +69,23 @@ const command = new Command()
     if (!environment) {
       throw new Error(`File inexistant for environment "${selected}".`)
     }
+
+    const paths = {
+      source: environment.file,
+      target: path.resolve(config.cwd, config.target),
+    }
+
+    if (paths.target.includes('*')) {
+      throw new Error(`Invalid target env file path: "${paths.target}"`)
+    }
+
+    // Ensure it's clear.
+    fs.rmSync(paths.target, { force: true })
+
+    // Install env file.
+    config.copy
+      ? fs.copyFileSync(paths.source, paths.target)
+      : fs.symlinkSync(paths.source, paths.target)
   })
 
 export { command }
