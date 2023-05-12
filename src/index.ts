@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // @ts-ignore
 import pkg from '../package.json'
 
