@@ -38,6 +38,8 @@ const configOptions = {
   cwd: { flags: '--cwd <path>', description: 'The root of the application' },
 }
 
+const configKeys = Object.keys(configOptions)
+
 const defaults: EnvsConfig = {
   copy: false,
   target: '.env',
@@ -68,11 +70,32 @@ const readConfig = (options?: Partial<EnvsConfig>): Partial<EnvsConfig> => {
 /**
  * Write the .envsrc config file.
  */
-const writeConfig = ({ cwd, ...options }: Partial<EnvsConfig>) => {
+const writeConfig = (config: Partial<EnvsConfig>) => {
+  const { cwd, ...options } = config
   const root = cwd ?? process.cwd()
   const configPath = path.resolve(root, '.envsrc')
 
-  fs.writeFileSync(configPath, JSON.stringify(options, null, 2), 'utf-8')
+  // Clone object.
+  const content: typeof options = { ...options }
+
+  // Existing file config.
+  const current = readConfig(config)
+
+  // Remove invalid keys.
+  for (const key of Object.keys(content) as (keyof typeof content)[]) {
+    if (!configKeys.includes(key)) {
+      delete content[key]
+    }
+  }
+
+  // Cleanup defaults.
+  for (const key of Object.keys(content) as (keyof typeof content)[]) {
+    if (content[key] === defaults[key] && !(key in current)) {
+      delete content[key]
+    }
+  }
+
+  fs.writeFileSync(configPath, JSON.stringify(content, null, 2) + '\n', 'utf-8')
 }
 
 /**
