@@ -1,10 +1,10 @@
-import fs from 'fs'
 import { Command } from 'commander'
 import inquirer, { Question } from 'inquirer'
 
 import { log } from '../lib/utils'
 import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
 import type { EnvsConfig } from '../lib/config'
+import { templateExists, createTemplate } from '../lib/environments'
 
 type Options = Partial<EnvsConfig>
 
@@ -51,6 +51,14 @@ const getQuestions = (options: Options) => {
     })
   }
 
+  questions.push({
+    name: 'createTemplate',
+    type: 'confirm',
+    default: false,
+    message: 'No environment template found. Should we create it?',
+    when: (answers) => !templateExists({ ...initials, ...answers }),
+  })
+
   // Add form length status.
   for (let i = 0; i < questions.length; i++) {
     questions[i].message = `(${i + 1}/${questions.length}) ${questions[i].message}`
@@ -58,13 +66,6 @@ const getQuestions = (options: Options) => {
 
   return questions
 }
-
-const steps = [
-  {
-    message: 'Writting .envsrc',
-    action: writeConfig,
-  },
-]
 
 /**
  * Command to initialize configuration file.
@@ -75,13 +76,19 @@ const command = new Command()
   .action(async () => {
     const options = command.optsWithGlobals()
     const questions = getQuestions(options)
-    const input = questions.length ? await inquirer.prompt(questions) : {}
+    const input = questions.length ? await inquirer.prompt(questions, options) : {}
     const config = initConfig({ ...options, ...input })
 
-    for (const step of steps) {
-      await log(step.message)
-      await step.action(config)
-      await log(`${step.message}: ok`)
+    // 1. Create .envsrc
+    await log('Creating .envsrc')
+    await writeConfig(config)
+    await log('Creating .envsrc: ok')
+
+    // 2. Optionally create template file.
+    if (input.createTemplate) {
+      await log(`Creating ${config.template}`)
+      await createTemplate(config)
+      await log(`Creating ${config.template}: ok`)
     }
   })
 

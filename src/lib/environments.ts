@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { globSync } from 'glob'
+import inquirer from 'inquirer'
 
 import type { EnvsConfig } from './config'
 
@@ -13,12 +14,33 @@ export interface Environment {
 const defaultTemplate = '# Environment: [name]\n'
 
 /**
+ * Check if a template file exists.
+ */
+const templateExists = (config: EnvsConfig) =>
+  fs.existsSync(path.resolve(config.cwd, config.template))
+
+/**
  * Read the template file.
  */
-const readTemplate = (config: EnvsConfig) => {
-  const filePath = path.resolve(config.cwd, config.template)
+const readTemplate = (config: EnvsConfig) =>
+  templateExists(config)
+    ? fs.readFileSync(path.resolve(config.cwd, config.template), 'utf-8')
+    : defaultTemplate
 
-  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : defaultTemplate
+/**
+ * Create template file.
+ */
+const createTemplate = async (config: EnvsConfig) => {
+  const { content } = await inquirer.prompt([
+    {
+      name: 'content',
+      type: 'editor',
+      default: defaultTemplate,
+      message: 'Edit the environment template file content',
+    },
+  ])
+
+  fs.writeFileSync(path.resolve(config.cwd, config.template), content, 'utf-8')
 }
 
 /**
@@ -89,4 +111,4 @@ const createEnviroment = (name: string, config: EnvsConfig) => {
   fs.writeFileSync(filePath, readTemplate(config).replace('[name]', name), 'utf-8')
 }
 
-export { getEnvironments, createEnviroment, isValidName }
+export { getEnvironments, createEnviroment, isValidName, templateExists, createTemplate }
