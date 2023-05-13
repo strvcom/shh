@@ -1,0 +1,91 @@
+import fs from 'fs'
+import log from 'log-update'
+import { Command } from 'commander'
+import inquirer, { Question } from 'inquirer'
+
+import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
+import type { SecrecyConfig } from '../lib/config'
+import { checkGitCryptInstall, checkSecretFile } from '../lib/check'
+
+type Options = Partial<SecrecyConfig>
+
+/**
+ * Build inquirer questions based on passed-in params.
+ */
+const getQuestions = (options: Options) => {
+  const initials = initConfig({})
+  const questions: Question[] = []
+
+  if (!options.copy) {
+    questions.push({
+      name: 'copy',
+      type: 'confirm',
+      default: initials.copy,
+      message: configOptions.copy.description,
+    })
+  }
+
+  if (!options.target) {
+    questions.push({
+      name: 'target',
+      type: 'string',
+      default: initials.target,
+      message: configOptions.target.description,
+    })
+  }
+
+  if (!options.secret) {
+    questions.push({
+      name: 'secret',
+      type: 'string',
+      default: initials.secret,
+      message: configOptions.secret.description,
+    })
+  }
+
+  if (!options.environments) {
+    questions.push({
+      name: 'environments',
+      type: 'string',
+      default: initials.environments,
+      message: configOptions.environments.description,
+    })
+  }
+
+  // Add form length status.
+  for (let i = 0; i < questions.length; i++) {
+    questions[i].message = `(${i + 1}/${questions.length}) ${questions[i].message}`
+  }
+
+  return questions
+}
+
+const steps = [
+  {
+    message: 'Writting .secrecyrc',
+    action: writeConfig,
+  },
+]
+
+/**
+ * Init command to setup codebase.
+ */
+const command = new Command()
+  .name('init')
+  .description('Initialize .secrecyrc config file and install necessary codebase changes.')
+  .action(async () => {
+    const options = command.optsWithGlobals()
+    const questions = getQuestions(options)
+    const input = questions.length ? await inquirer.prompt(questions) : {}
+    const config = initConfig({ ...options, ...input })
+
+    for (const step of steps) {
+      log(step.message)
+      await step.action(config)
+      log(`${step.message}: ok`)
+    }
+  })
+
+addConfigOptions(command)
+
+export { command }

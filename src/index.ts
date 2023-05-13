@@ -3,13 +3,17 @@
 // @ts-ignore
 import pkg from '../package.json'
 
-import { command as main } from './commands/main'
+import { command as program } from './commands/main'
+import { command as init } from './commands/init'
 
-const program = main
+program
   // Declare program meta.
   .name(pkg.name)
   .description(pkg.description)
   .version(pkg.version)
 
-// Execute.
-program.parse(process.argv)
+  // Register sub-commands.
+  .addCommand(init)
+
+  // Execute.
+  .parse(process.argv)
