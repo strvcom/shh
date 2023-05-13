@@ -6,17 +6,16 @@ import log from 'log-update'
 import inquirer from 'inquirer'
 
 import { initConfig, addConfigOptions } from '../lib/config'
-import type { SecrecyConfig } from '../lib/config'
-import { checkGitCryptInstall, checkSecretFile } from '../lib/check'
+import type { EnvsConfig } from '../lib/config'
 
-type Options = Partial<SecrecyConfig> & {
+type Options = Partial<EnvsConfig> & {
   environment?: string
 }
 
 /**
  * Resolve environment paths and their names.
  */
-const getEnvironments = (config: SecrecyConfig, allowEmpty = false) => {
+const getEnvironments = (config: EnvsConfig, allowEmpty = false) => {
   const pattern = config.environments.replace('[name]', '*')
 
   const regex = new RegExp(
@@ -74,9 +73,6 @@ const command = new Command()
     if (!environment) {
       throw new Error(`File inexistant for environment "${selected}".`)
     }
-
-    checkGitCryptInstall()
-    checkSecretFile(config)
 
     const paths = {
       source: environment.file,

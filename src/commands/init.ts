@@ -4,10 +4,9 @@ import { Command } from 'commander'
 import inquirer, { Question } from 'inquirer'
 
 import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
-import type { SecrecyConfig } from '../lib/config'
-import { checkGitCryptInstall, checkSecretFile } from '../lib/check'
+import type { EnvsConfig } from '../lib/config'
 
-type Options = Partial<SecrecyConfig>
+type Options = Partial<EnvsConfig>
 
 /**
  * Build inquirer questions based on passed-in params.
@@ -34,15 +33,6 @@ const getQuestions = (options: Options) => {
     })
   }
 
-  if (!options.secret) {
-    questions.push({
-      name: 'secret',
-      type: 'string',
-      default: initials.secret,
-      message: configOptions.secret.description,
-    })
-  }
-
   if (!options.environments) {
     questions.push({
       name: 'environments',
@@ -62,7 +52,7 @@ const getQuestions = (options: Options) => {
 
 const steps = [
   {
-    message: 'Writting .secrecyrc',
+    message: 'Writting .envsrc',
     action: writeConfig,
   },
 ]
@@ -72,7 +62,7 @@ const steps = [
  */
 const command = new Command()
   .name('init')
-  .description('Initialize .secrecyrc config file and install necessary codebase changes.')
+  .description('Initialize .envsrc config file and install necessary codebase changes.')
   .action(async () => {
     const options = command.optsWithGlobals()
     const questions = getQuestions(options)

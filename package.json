@@ -1,12 +1,12 @@
 {
-  "name": "@strv/secrecy",
+  "name": "@strv/envs",
   "version": "0.1.0",
-  "description": "Simple environment manager.",
+  "description": "Simple environment switcher.",
   "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
   "license": "MIT",
   "main": "./dist/index.js",
   "bin": {
-    "secrecy": "./dist/index.js"
+    "envs": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc"

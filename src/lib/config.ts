@@ -2,16 +2,11 @@ import { Command } from 'commander'
 import fs from 'fs'
 import path from 'path'
 
-interface SecrecyConfig {
+interface EnvsConfig {
   /**
    * Install environment using a copy instead of symlink.
    */
   copy: boolean
-
-  /**
-   * The path to the git-crypt secret file.
-   */
-  secret: string
 
   /**
    * The path to the managed env file.
@@ -32,16 +27,14 @@ interface SecrecyConfig {
 // prettier-ignore
 const configOptions = {
   copy: { flags: '-c, --copy', description: 'Install environment using a copy instead of symlink' },
-  secret: { flags: '-s, --secret <path>', description: 'The path to the git-crypt secret file' },
   target: { flags: '-t, --target <path>', description: 'The path to the managed env file' },
   environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files' },
   cwd: { flags: '--cwd <path>', description: 'The root of the application' },
 }
 
-const defaults: SecrecyConfig = {
+const defaults: EnvsConfig = {
   copy: false,
   target: '.env',
-  secret: './env/secret',
   environments: './env/.env.encrypted.[name]',
   cwd: process.cwd(),
 }
@@ -56,21 +49,21 @@ const addConfigOptions = (command: Command) =>
   )
 
 /**
- * Read the .secrecyrc config file.
+ * Read the .envsrc config file.
  */
-const readConfig = (options?: Partial<SecrecyConfig>): Partial<SecrecyConfig> => {
+const readConfig = (options?: Partial<EnvsConfig>): Partial<EnvsConfig> => {
   const root = options?.cwd ?? process.cwd()
-  const configPath = path.resolve(root, '.secrecyrc')
+  const configPath = path.resolve(root, '.envsrc')
 
   return fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf-8')) : {}
 }
 
 /**
- * Write the .secrecyrc config file.
+ * Write the .envsrc config file.
  */
-const writeConfig = ({ cwd, ...options }: Partial<SecrecyConfig>) => {
+const writeConfig = ({ cwd, ...options }: Partial<EnvsConfig>) => {
   const root = cwd ?? process.cwd()
-  const configPath = path.resolve(root, '.secrecyrc')
+  const configPath = path.resolve(root, '.envsrc')
 
   fs.writeFileSync(configPath, JSON.stringify(options, null, 2), 'utf-8')
 }
@@ -78,11 +71,11 @@ const writeConfig = ({ cwd, ...options }: Partial<SecrecyConfig>) => {
 /**
  * Load the config file and merge with defaults and overrides.
  */
-const initConfig = <Override extends Partial<SecrecyConfig>>(override: Override) => ({
+const initConfig = <Override extends Partial<EnvsConfig>>(override: Override) => ({
   ...defaults,
   ...readConfig(override),
   ...override,
 })
 
 export { configOptions, initConfig, readConfig, writeConfig, addConfigOptions }
-export type { SecrecyConfig }
+export type { EnvsConfig }
