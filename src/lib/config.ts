@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import fs from 'fs'
 import path from 'path'
 
-interface EnvsConfig {
+export interface EnvsConfig {
   /**
    * Install environment using a copy instead of symlink.
    */
@@ -35,7 +35,7 @@ const configOptions = {
 const defaults: EnvsConfig = {
   copy: false,
   target: '.env',
-  environments: './env/.env.encrypted.[name]',
+  environments: './env/.env.[name]',
   cwd: process.cwd(),
 }
 
@@ -78,4 +78,3 @@ const initConfig = <Override extends Partial<EnvsConfig>>(override: Override) =>
 })
 
 export { configOptions, initConfig, readConfig, writeConfig, addConfigOptions }
-export type { EnvsConfig }
