@@ -72,17 +72,17 @@ const getQuestions = (options: Options) => {
  */
 const command = new Command()
   .name('init')
-  .description('Initialize .envsrc config file and install necessary codebase changes.')
+  .description('Initialize .shhrc config file and install necessary codebase changes.')
   .action(async () => {
     const options = command.optsWithGlobals()
     const questions = getQuestions(options)
     const input = questions.length ? await inquirer.prompt(questions, options) : {}
     const config = initConfig({ ...options, ...input })
 
-    // 1. Create .envsrc
-    await log('Creating .envsrc')
+    // 1. Create .shhrc
+    await log('Creating .shhrc')
     await writeConfig(config)
-    await log('Creating .envsrc: ok')
+    await log('Creating .shhrc: ok')
 
     // 2. Optionally create template file.
     if (input.createTemplate) {

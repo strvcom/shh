@@ -1,10 +1,11 @@
 {
-  "name": "@strv/envs",
+  "name": "@strv/shh",
   "version": "0.1.0",
-  "description": "Simple environment switcher.",
+  "description": "Simple environment variables switcher/manager.",
   "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
   "license": "MIT",
   "main": "./dist/index.js",
+  "private": false,
   "bin": {
     "envs": "./bin"
   },

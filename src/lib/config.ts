@@ -58,22 +58,22 @@ const addConfigOptions = (command: Command) =>
   )
 
 /**
- * Read the .envsrc config file.
+ * Read the .shhrc config file.
  */
 const readConfig = (options?: Partial<EnvsConfig>): Partial<EnvsConfig> => {
   const root = options?.cwd ?? process.cwd()
-  const configPath = path.resolve(root, '.envsrc')
+  const configPath = path.resolve(root, '.shhrc')
 
   return fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath, 'utf-8')) : {}
 }
 
 /**
- * Write the .envsrc config file.
+ * Write the .shhrc config file.
  */
 const writeConfig = (config: Partial<EnvsConfig>) => {
   const { cwd, ...options } = config
   const root = cwd ?? process.cwd()
-  const configPath = path.resolve(root, '.envsrc')
+  const configPath = path.resolve(root, '.shhrc')
 
   // Clone object.
   const content: typeof options = { ...options }
