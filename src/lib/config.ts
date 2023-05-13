@@ -1,42 +1,58 @@
+import { Command } from 'commander'
 import fs from 'fs'
 import path from 'path'
 
 interface SecrecyConfig {
   /**
-   * If we should copy instead of symlink.
+   * Install environment using a copy instead of symlink.
    */
   copy: boolean
 
   /**
-   * Target env symlink path.
-   */
-  target: string
-
-  /**
-   * Path to the secret key.
+   * The path to the git-crypt secret file.
    */
   secret: string
 
   /**
-   * Path pattern to environment files.
+   * The path to the managed env file.
+   */
+  target: string
+
+  /**
+   * The path pattern to the environment files.
    */
   environments: string
 
   /**
-   * Resolved project root.
+   * The root of the application.
    */
   cwd: string
 }
 
-const defaults = {
+const defaults: SecrecyConfig = {
   copy: false,
   target: '.env',
   secret: './env/secret',
   environments: './env/.env.encrypted.[name]',
+  cwd: process.cwd(),
 }
 
-const getConfig = <Override extends {}>(override: Override) => {
-  const root = process.cwd()
+/**
+ * Apply common options to to a command.
+ */
+const addConfigOptions = (command: Command) =>
+  command
+    .option('-c, --copy', 'Install environment using a copy instead of symlink')
+    .option('-s, --secret <path>', 'The path to the git-crypt secret file')
+    .option('-t, --target <path>', 'The path to the managed env file')
+    .option('-E, --environments <path>', 'The path pattern to the environment files')
+    .option('--cwd <path>', 'The root of the application')
+
+/**
+ * Load the config file and merge with defaults and overrides.
+ */
+const initConfig = <Override extends Partial<SecrecyConfig>>(override: Override) => {
+  const root = override.cwd || process.cwd()
   const configPath = path.resolve(root, '.secrecyrc')
 
   const config: Omit<Partial<SecrecyConfig>, 'root'> = fs.existsSync(configPath)
@@ -46,5 +62,5 @@ const getConfig = <Override extends {}>(override: Override) => {
   return { ...defaults, ...config, ...override, cwd: root }
 }
 
-export { getConfig }
+export { initConfig, defaults, addConfigOptions }
 export type { SecrecyConfig }

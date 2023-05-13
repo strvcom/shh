@@ -5,18 +5,18 @@ import { globSync } from 'glob'
 import log from 'log-update'
 import inquirer from 'inquirer'
 
-import { getConfig, SecrecyConfig } from '../lib/config'
+import { initConfig, addConfigOptions } from '../lib/config'
+import type { SecrecyConfig } from '../lib/config'
 import { checkGitCryptInstall, checkSecretFile } from '../lib/check'
 
-interface Options {
-  secret: string
-  environment: string
+type Options = Partial<SecrecyConfig> & {
+  environment?: string
 }
 
 /**
  * Resolve environment paths and their names.
  */
-const getEnvironments = (config: SecrecyConfig) => {
+const getEnvironments = (config: SecrecyConfig, allowEmpty = false) => {
   const pattern = config.environments.replace('[name]', '*')
 
   const regex = new RegExp(
@@ -37,7 +37,7 @@ const getEnvironments = (config: SecrecyConfig) => {
     return { file, name, relative: path.relative(config.cwd, file) }
   })
 
-  if (!environments.length) {
+  if (!allowEmpty && !environments.length) {
     throw new Error(`No environment found at "${config.environments}"`)
   }
 
@@ -59,14 +59,14 @@ const selectEnvironment = async (environments: ReturnType<typeof getEnvironments
     ])
   ).environment as string
 
-// Declare the command-line program.
+/**
+ * Main command to install a environment.
+ */
 const command = new Command()
-  .option('-s, --secret <path>', 'The path to the secret file')
+  .allowExcessArguments(false)
   .option('-e, --environment <name>', 'The environment to install')
-  .option('-c, --copy', 'Copy env file instead of symlinking it')
-  .option('-t, --target <path>', 'The path to the managed env target')
   .action(async (options: Options) => {
-    const config = getConfig(options)
+    const config = initConfig(options)
     const environments = getEnvironments(config)
     const selected = config.environment ?? (await selectEnvironment(environments))
     const environment = environments.find(({ name }) => name === selected)
@@ -104,5 +104,7 @@ const command = new Command()
 
     log(`Creating ${config.target} symlink to ${environment.relative}: ok`)
   })
+
+addConfigOptions(command)
 
 export { command }
