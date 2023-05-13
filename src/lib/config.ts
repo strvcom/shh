@@ -14,6 +14,11 @@ export interface EnvsConfig {
   target: string
 
   /**
+   * The path to the env template file.
+   */
+  template: string
+
+  /**
    * The path pattern to the environment files.
    */
   environments: string
@@ -28,6 +33,7 @@ export interface EnvsConfig {
 const configOptions = {
   copy: { flags: '-c, --copy', description: 'Install environment using a copy instead of symlink' },
   target: { flags: '-t, --target <path>', description: 'The path to the managed env file' },
+  template: { flags: '-T, --template <path>', description: 'The path to the env template file' },
   environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files' },
   cwd: { flags: '--cwd <path>', description: 'The root of the application' },
 }
@@ -35,6 +41,7 @@ const configOptions = {
 const defaults: EnvsConfig = {
   copy: false,
   target: '.env',
+  template: '.env.template',
   environments: './env/.env.[name]',
   cwd: process.cwd(),
 }

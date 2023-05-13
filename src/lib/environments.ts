@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import { globSync } from 'glob'
 
@@ -7,6 +8,17 @@ export interface Environment {
   file: string
   name: string
   relative: string
+}
+
+const defaultTemplate = '# Environment: [name]\n'
+
+/**
+ * Read the template file.
+ */
+const readTemplate = (config: EnvsConfig) => {
+  const filePath = path.resolve(config.cwd, config.template)
+
+  return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : defaultTemplate
 }
 
 /**
@@ -40,4 +52,41 @@ const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] 
   return environments
 }
 
-export { getEnvironments }
+const filenameRegex = /^[\w\-.]+$/
+
+/**
+ * Validate an environment name.
+ */
+const isValidName = (name: string, config: EnvsConfig) => {
+  const existing = getEnvironments(config).map(({ name }) => name)
+
+  // Validate uniqueness.
+  if (existing.some((environment) => environment === name)) {
+    return `Must be different then existing environments (${existing.join(', ')})`
+  }
+
+  // Validate format.
+  if (!name.match(filenameRegex)) {
+    return `Must be a valid name (${filenameRegex})`
+  }
+
+  return true
+}
+
+/**
+ * Create a new environment file based on the template file.
+ */
+const createEnviroment = (name: string, config: EnvsConfig) => {
+  const validationResult = isValidName(name, config)
+
+  if (validationResult !== true) {
+    console.log(`Validation error: ${validationResult}`)
+    throw new Error('Invalid environment name')
+  }
+
+  const filePath = path.resolve(config.cwd, config.environments.replace('[name]', name))
+
+  fs.writeFileSync(filePath, readTemplate(config).replace('[name]', name), 'utf-8')
+}
+
+export { getEnvironments, createEnviroment, isValidName }

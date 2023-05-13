@@ -1,8 +1,8 @@
 import fs from 'fs'
-import log from 'log-update'
 import { Command } from 'commander'
 import inquirer, { Question } from 'inquirer'
 
+import { log } from '../lib/utils'
 import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
 import type { EnvsConfig } from '../lib/config'
 
@@ -33,6 +33,15 @@ const getQuestions = (options: Options) => {
     })
   }
 
+  if (!options.template) {
+    questions.push({
+      name: 'template',
+      type: 'string',
+      default: initials.template,
+      message: configOptions.target.description,
+    })
+  }
+
   if (!options.environments) {
     questions.push({
       name: 'environments',
@@ -58,7 +67,7 @@ const steps = [
 ]
 
 /**
- * Init command to setup codebase.
+ * Command to initialize configuration file.
  */
 const command = new Command()
   .name('init')
@@ -70,9 +79,9 @@ const command = new Command()
     const config = initConfig({ ...options, ...input })
 
     for (const step of steps) {
-      log(step.message)
+      await log(step.message)
       await step.action(config)
-      log(`${step.message}: ok`)
+      await log(`${step.message}: ok`)
     }
   })
 

@@ -2,9 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import { Command } from 'commander'
 import { globSync } from 'glob'
-import log from 'log-update'
 import inquirer from 'inquirer'
 
+import { log } from '../lib/utils'
 import { initConfig, addConfigOptions } from '../lib/config'
 import type { EnvsConfig } from '../lib/config'
 import { getEnvironments } from '../lib/environments'
@@ -54,7 +54,7 @@ const command = new Command()
       throw new Error(`Invalid target env file path: "${paths.target}"`)
     }
 
-    log(`Creating ${config.target} symlink to ${environment.relative}`)
+    await log(`Creating ${config.target} symlink to ${environment.relative}`)
 
     try {
       // Ensure it's clear.`
@@ -69,7 +69,7 @@ const command = new Command()
       throw new Error(`Failed creating ${config.target} symlink to ${environment.relative}`)
     }
 
-    log(`Creating ${config.target} symlink to ${environment.relative}: ok`)
+    await log(`Creating ${config.target} symlink to ${environment.relative}: ok`)
   })
 
 addConfigOptions(command)
