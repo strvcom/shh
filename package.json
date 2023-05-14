@@ -9,8 +9,13 @@
   "bin": {
     "shh": "./bin"
   },
+  "files": [
+    "/dist"
+  ],
   "scripts": {
-    "build": "tsc"
+    "clean": "rm -Rf ./dist",
+    "build": "yarn clean && tsc",
+    "prepublishOnly": "build"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.3",
@@ -22,10 +27,5 @@
     "glob": "^10.2.3",
     "inquirer": "^8.0.0",
     "log-update": "4.x.x"
-  },
-  "resolutions": {
-    "wrap-ansi": "^7.x.x",
-    "string-width": "^4.x.x",
-    "strip-ansi": "^6.x.x"
   }
 }

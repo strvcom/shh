@@ -2,9 +2,14 @@
 
 /node_modules
 .eslintcache
+.env*
 
 # Build
 /dist/
 
 # Misc
 .DS_Store
+yarn.lock
+
+# Tests
+.shhrc
