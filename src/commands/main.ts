@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 import { Command } from 'commander'
-import { globSync } from 'glob'
 import inquirer from 'inquirer'
 
 import { log } from '../lib/utils'
