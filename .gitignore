@@ -9,7 +9,6 @@
 
 # Misc
 .DS_Store
-yarn.lock
 
 # Tests
 .shhrc
