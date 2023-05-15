@@ -31,6 +31,19 @@ const configureGitAttributes = (config: EnvsConfig) => {
 }
 
 /**
+ * Configure .gitignore file with git-crypt.
+ */
+const configureGitIgnore = (config: EnvsConfig) => {
+  const file = path.resolve(config.cwd, '.gitignore')
+  const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
+  const append = `${config.target}`
+
+  if (!content.includes(append)) {
+    fs.writeFileSync(file, `${content}\n${append}`)
+  }
+}
+
+/**
  * Initializes git-crypt necessary configuration.
  */
 const configure = (config: EnvsConfig) => {
@@ -39,6 +52,9 @@ const configure = (config: EnvsConfig) => {
 
   // 2. Configure .gitattributes
   configureGitAttributes(config)
+
+  // 3. Configure .gitignore
+  configureGitIgnore(config)
 }
 
 export { checkAvailability, configure }
