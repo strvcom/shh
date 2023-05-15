@@ -4,6 +4,7 @@ import { execSync } from 'child_process'
 
 import type { EnvsConfig } from './config'
 import { getEnvironmentsPattern } from './environments'
+import { stage } from './utils'
 
 /**
  * Safely verify if git-crypt is installed.
@@ -20,41 +21,49 @@ const checkAvailability = () => {
 /**
  * Configure .gitattributes file with git-crypt.
  */
-const configureGitAttributes = (config: EnvsConfig) => {
+const configureGitAttributes = (config: EnvsConfig, shouldStageFiles = false) => {
   const file = path.resolve(config.cwd, '.gitattributes')
   const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
   const append = `${getEnvironmentsPattern(config)} filter=git-crypt diff=git-crypt`
 
   if (!content.includes(append)) {
     fs.writeFileSync(file, `${content}\n${append}`)
+
+    if (shouldStageFiles) {
+      stage(file)
+    }
   }
 }
 
 /**
  * Configure .gitignore file with git-crypt.
  */
-const configureGitIgnore = (config: EnvsConfig) => {
+const configureGitIgnore = (config: EnvsConfig, shouldStageFiles = false) => {
   const file = path.resolve(config.cwd, '.gitignore')
   const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
   const append = `${config.target}`
 
   if (!content.includes(append)) {
     fs.writeFileSync(file, `${content}\n${append}`)
+
+    if (shouldStageFiles) {
+      stage(file)
+    }
   }
 }
 
 /**
  * Initializes git-crypt necessary configuration.
  */
-const configure = (config: EnvsConfig) => {
+const configure = (config: EnvsConfig, shouldStageFiles = false) => {
   // 1. Generate key.
   execSync('git-crypt init --key-name shh')
 
   // 2. Configure .gitattributes
-  configureGitAttributes(config)
+  configureGitAttributes(config, shouldStageFiles)
 
   // 3. Configure .gitignore
-  configureGitIgnore(config)
+  configureGitIgnore(config, shouldStageFiles)
 }
 
 export { checkAvailability, configure }

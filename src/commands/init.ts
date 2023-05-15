@@ -9,6 +9,11 @@ import * as gitCrypt from '../lib/git-crypt'
 
 type Options = Partial<EnvsConfig>
 
+type Answers = Options & {
+  shouldCreateTemplate: boolean
+  shouldStageFiles: boolean
+}
+
 /**
  * Build inquirer questions based on passed-in params.
  */
@@ -72,11 +77,18 @@ const getQuestions = (options: Options) => {
   }
 
   questions.push({
-    name: 'createTemplate',
+    name: 'shouldCreateTemplate',
     type: 'confirm',
     default: false,
     message: 'No environment template found. Should we create one?',
     when: (answers) => !templateExists({ ...initials, ...answers }),
+  })
+
+  questions.push({
+    name: 'shouldStageFiles',
+    type: 'confirm',
+    default: true,
+    message: 'Whether file changes during Shh should be staged in git',
   })
 
   // Add form length status.
@@ -96,18 +108,18 @@ const command = new Command()
   .action(async () => {
     const options = command.optsWithGlobals()
     const questions = getQuestions(options)
-    const input = questions.length ? await inquirer.prompt(questions, options) : {}
+    const input = (questions.length ? await inquirer.prompt(questions, options) : {}) as Answers
     const config = initConfig({ ...options, ...input })
 
     // 1. Create .shhrc
     await log('Creating .shhrc')
-    await writeConfig(config)
+    await writeConfig(config, config.shouldStageFiles)
     await log('Creating .shhrc: ok', true)
 
     // 2. Optionally create template file.
-    if (input.createTemplate) {
+    if (input.shouldCreateTemplate) {
       await log(`Creating ${config.template}`)
-      await createTemplate(config)
+      await createTemplate(config, config.shouldStageFiles)
       await log(`Creating ${config.template}: ok`, true)
     }
 
@@ -124,7 +136,7 @@ const command = new Command()
 
       // 4. Configure git-crypt.
       await log('Configuring git-crypt')
-      await gitCrypt.configure(config)
+      await gitCrypt.configure(config, config.shouldStageFiles)
       await log('Configuring git-crypt: ok', true)
     }
   })
