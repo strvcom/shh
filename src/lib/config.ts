@@ -4,7 +4,7 @@ import path from 'path'
 
 export interface EnvsConfig {
   /**
-   * Install environment using a copy instead of symlink.
+   * Whether we should install environments using copy instead of symlink.
    */
   copy: boolean
 
@@ -24,6 +24,16 @@ export interface EnvsConfig {
   environments: string
 
   /**
+   * Whether we should encrypt environment files.
+   */
+  shouldEncrypt: boolean
+
+  /**
+   * The path to the git-crypt key file.
+   */
+  key: string
+
+  /**
    * The root of the application.
    */
   cwd: string
@@ -31,11 +41,11 @@ export interface EnvsConfig {
 
 // prettier-ignore
 const configOptions = {
-  copy: { flags: '-c, --copy', description: 'Install environment using a copy instead of symlink' },
+  copy: { flags: '-c, --copy', description: 'Whether we should install environments using copy instead of symlink' },
   target: { flags: '-t, --target <path>', description: 'The path to the managed env file' },
   template: { flags: '-T, --template <path>', description: 'The path to the env template file' },
   environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files' },
-  secretFile: { flags: '-S, --secret-file <path>', description: 'The path to the git-crypt secret file' },
+  key: { flags: '-k, --key <path>', description: 'The path to the git-crypt key file' },
   cwd: { flags: '--cwd <path>', description: 'The root of the application' },
 }
 
@@ -44,8 +54,10 @@ const configKeys = Object.keys(configOptions)
 const defaults: EnvsConfig = {
   copy: false,
   target: '.env',
-  template: '.env.template',
-  environments: './envs/.[name]',
+  template: './envs/template',
+  environments: './envs/env.[name]',
+  shouldEncrypt: true,
+  key: './envs/key',
   cwd: process.cwd(),
 }
 

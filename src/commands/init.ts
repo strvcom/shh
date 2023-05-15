@@ -51,6 +51,23 @@ const getQuestions = (options: Options) => {
     })
   }
 
+  if (!options.key) {
+    questions.push({
+      name: 'shouldEncrypt',
+      type: 'confirm',
+      default: true,
+      message: 'Should we initialize environment files encryption?',
+    })
+
+    questions.push({
+      name: 'key',
+      type: 'string',
+      default: initials.key,
+      message: configOptions.key.description,
+      when: (answers) => answers.shouldEncrypt,
+    })
+  }
+
   questions.push({
     name: 'createTemplate',
     type: 'confirm',
