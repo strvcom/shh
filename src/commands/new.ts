@@ -31,7 +31,7 @@ const promptEnvironment = async (config: EnvsConfig) =>
  */
 const command = new Command()
   .name('new')
-  .description('Create a new environment file based on the template.')
+  .description('Create a new environment file.')
   .option('-e, --environment <name>', 'The name of the environment.')
   .action(async () => {
     const options = command.optsWithGlobals<Options>()

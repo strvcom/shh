@@ -24,11 +24,6 @@ export interface EnvsConfig {
   environments: string
 
   /**
-   * The path patterns to ignore when matching environments.
-   */
-  ignoreEnvironments: Array<string | RegExp>
-
-  /**
    * The root of the application.
    */
   cwd: string
@@ -40,7 +35,7 @@ const configOptions = {
   target: { flags: '-t, --target <path>', description: 'The path to the managed env file' },
   template: { flags: '-T, --template <path>', description: 'The path to the env template file' },
   environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files' },
-  ignoreEnvironments: { flags: '-i, --ignore-environments <path>', description: 'The path patterns to ignore when matching environments' },
+  secretFile: { flags: '-S, --secret-file <path>', description: 'The path to the git-crypt secret file' },
   cwd: { flags: '--cwd <path>', description: 'The root of the application' },
 }
 
@@ -50,8 +45,7 @@ const defaults: EnvsConfig = {
   copy: false,
   target: '.env',
   template: '.env.template',
-  environments: '.env.[name]',
-  ignoreEnvironments: ['.env.local'],
+  environments: './envs/.[name]',
   cwd: process.cwd(),
 }
 
@@ -106,30 +100,12 @@ const writeConfig = (config: Partial<EnvsConfig>) => {
 }
 
 /**
- * Sanitize input where needed.
- */
-const sanitize = <C extends EnvsConfig>(config: C) => {
-  // Ensure ignore environments is an array.
-  if (typeof config.ignoreEnvironments === 'string') {
-    config.ignoreEnvironments = (config.ignoreEnvironments as string).split(/, ?/)
-  }
-
-  // Parse ignore environments regexes.
-  config.ignoreEnvironments = (config.ignoreEnvironments ?? []).map((pattern) =>
-    typeof pattern === 'string' && pattern.match(/^\/.+\/$/) ? new RegExp(pattern, 'i') : pattern
-  )
-
-  return config
-}
-
-/**
  * Load the config file and merge with defaults and overrides.
  */
-const initConfig = <Override extends Partial<EnvsConfig>>(override: Override) =>
-  sanitize({
-    ...defaults,
-    ...readConfig(override),
-    ...override,
-  })
+const initConfig = <Override extends Partial<EnvsConfig>>(override: Override) => ({
+  ...defaults,
+  ...readConfig(override),
+  ...override,
+})
 
 export { configOptions, initConfig, readConfig, writeConfig, addConfigOptions }

@@ -51,21 +51,11 @@ const getQuestions = (options: Options) => {
     })
   }
 
-  if (!options.ignoreEnvironments) {
-    questions.push({
-      name: 'ignoreEnvironments',
-      type: 'string',
-      default: initials.ignoreEnvironments.join(','),
-      message: `${configOptions.environments.description} (comma separated)`,
-      filter: (input: string = '') => input.split(/, ?/),
-    })
-  }
-
   questions.push({
     name: 'createTemplate',
     type: 'confirm',
     default: false,
-    message: 'No environment template found. Should we create it?',
+    message: 'No environment template found. Should we create one?',
     when: (answers) => !templateExists({ ...initials, ...answers }),
   })
 

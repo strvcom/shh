@@ -58,10 +58,6 @@ const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] 
   )
 
   const environments = globSync(pattern, { cwd: config.cwd, absolute: true })
-    // Remove template.
-    .filter((file) => !file.endsWith(config.template))
-    // Remove ignored files.
-    .filter((file) => !(config.ignoreEnvironments ?? []).some((pattern) => file.match(pattern)))
     // Resolve environment meta from file path.
     .map((file) => {
       const name = file.match(regex)?.groups?.name
