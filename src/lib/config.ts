@@ -24,14 +24,14 @@ export interface EnvsConfig {
   environments: string
 
   /**
-   * Whether we should encrypt environment files.
+   * Whether we should encrypt environment files using git-crypt.
    */
   shouldEncrypt: boolean
 
   /**
    * The path to the git-crypt key file.
    */
-  key: string
+  encryptionKey: string
 
   /**
    * The root of the application.
@@ -45,7 +45,8 @@ const configOptions = {
   target: { flags: '-t, --target <path>', description: 'The path to the managed env file' },
   template: { flags: '-T, --template <path>', description: 'The path to the env template file' },
   environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files' },
-  key: { flags: '-k, --key <path>', description: 'The path to the git-crypt key file' },
+  shouldEncrypt: { flags: '-x, --should-encrypt', description: 'Whether we should encrypt environment files using git-crypt' },
+  encryptionKey: { flags: '-k, --key <path>', description: 'The path to the git-crypt key file' },
   cwd: { flags: '--cwd <path>', description: 'The root of the application' },
 }
 
@@ -57,7 +58,7 @@ const defaults: EnvsConfig = {
   template: './envs/template',
   environments: './envs/env.[name]',
   shouldEncrypt: true,
-  key: './envs/key',
+  encryptionKey: './envs/key',
   cwd: process.cwd(),
 }
 

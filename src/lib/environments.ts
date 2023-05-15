@@ -44,10 +44,15 @@ const createTemplate = async (config: EnvsConfig) => {
 }
 
 /**
+ * Translate environments pattern into glob pattern.
+ */
+const getEnvironmentsPattern = (config: EnvsConfig) => config.environments.replace('[name]', '*')
+
+/**
  * Resolve environment paths and their names.
  */
 const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] => {
-  const pattern = config.environments.replace('[name]', '*')
+  const pattern = getEnvironmentsPattern(config)
 
   const regex = new RegExp(
     `^${path
@@ -59,7 +64,7 @@ const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] 
 
   const environments = globSync(pattern, { cwd: config.cwd, absolute: true })
     // Ignore key file.
-    .filter((file) => !file.endsWith(config.key))
+    .filter((file) => !file.endsWith(config.encryptionKey))
     // Ignore template file.
     .filter((file) => !file.endsWith(config.template))
     // Resolve environment meta from file path.
@@ -117,4 +122,11 @@ const createEnviroment = (name: string, config: EnvsConfig) => {
   fs.writeFileSync(filePath, readTemplate(config).replace('[name]', name), 'utf-8')
 }
 
-export { getEnvironments, createEnviroment, isValidName, templateExists, createTemplate }
+export {
+  getEnvironments,
+  getEnvironmentsPattern,
+  createEnviroment,
+  isValidName,
+  templateExists,
+  createTemplate,
+}

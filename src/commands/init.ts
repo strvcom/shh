@@ -5,6 +5,7 @@ import { log } from '../lib/utils'
 import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
 import type { EnvsConfig } from '../lib/config'
 import { templateExists, createTemplate } from '../lib/environments'
+import * as gitCrypt from '../lib/git-crypt'
 
 type Options = Partial<EnvsConfig>
 
@@ -51,19 +52,21 @@ const getQuestions = (options: Options) => {
     })
   }
 
-  if (!options.key) {
+  if (!options.shouldEncrypt) {
     questions.push({
       name: 'shouldEncrypt',
       type: 'confirm',
-      default: true,
-      message: 'Should we initialize environment files encryption?',
+      default: initials.shouldEncrypt,
+      message: configOptions.shouldEncrypt.description,
     })
+  }
 
+  if (!options.encryptionKey) {
     questions.push({
-      name: 'key',
+      name: 'encryptionKey',
       type: 'string',
-      default: initials.key,
-      message: configOptions.key.description,
+      default: initials.encryptionKey,
+      message: configOptions.encryptionKey.description,
       when: (answers) => answers.shouldEncrypt,
     })
   }
@@ -99,13 +102,30 @@ const command = new Command()
     // 1. Create .shhrc
     await log('Creating .shhrc')
     await writeConfig(config)
-    await log('Creating .shhrc: ok')
+    await log('Creating .shhrc: ok', true)
 
     // 2. Optionally create template file.
     if (input.createTemplate) {
       await log(`Creating ${config.template}`)
       await createTemplate(config)
-      await log(`Creating ${config.template}: ok`)
+      await log(`Creating ${config.template}: ok`, true)
+    }
+
+    if (config.shouldEncrypt) {
+      await log('Checking git-crypt install')
+
+      // 3. Verify if git-crypt is installed.
+      if (!gitCrypt.checkAvailability()) {
+        await log('Checking git-crypt install: fail', true)
+        throw new Error('git-crypt not found. Check README.md for instructions.')
+      }
+
+      await log('Checking git-crypt install: ok', true)
+
+      // 4. Configure git-crypt.
+      await log('Configuring git-crypt')
+      await gitCrypt.configure(config)
+      await log('Configuring git-crypt: ok', true)
     }
   })
 

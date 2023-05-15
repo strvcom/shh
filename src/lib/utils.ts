@@ -8,9 +8,14 @@ const sleep = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms))
 /**
  * Updating logger with better UX.
  */
-const log = async (...args: Parameters<typeof logUpdate>) => {
-  logUpdate(...args)
+const log = async (message: string, done = false) => {
+  logUpdate(message)
+
   await sleep()
+
+  if (done) {
+    logUpdate.done()
+  }
 }
 
 export { sleep, log }
