@@ -27,7 +27,7 @@ const configureGitAttributes = (config: EnvsConfig, shouldStageFiles = false) =>
   const append = `${getEnvironmentsPattern(config)} filter=git-crypt diff=git-crypt`
 
   if (!content.includes(append)) {
-    fs.writeFileSync(file, `${content}\n${append}`)
+    fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
 
     if (shouldStageFiles) {
       stage(file)
@@ -44,7 +44,7 @@ const configureGitIgnore = (config: EnvsConfig, shouldStageFiles = false) => {
   const append = `${config.target}`
 
   if (!content.includes(append)) {
-    fs.writeFileSync(file, `${content}\n${append}`)
+    fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
 
     if (shouldStageFiles) {
       stage(file)
