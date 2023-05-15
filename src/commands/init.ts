@@ -74,7 +74,7 @@ const getQuestions = (options: Options) => {
       type: 'string',
       default: initials.encryptionKey,
       message: configOptions.encryptionKey.description,
-      when: (answers) => answers.shouldEncrypt,
+      when: (answers) => !!answers.shouldEncrypt,
     })
   }
 
@@ -148,7 +148,10 @@ const command = new Command()
     }
 
     if (config.gitAction === 'commit') {
-      execSync(`git commit -e -m "chore: init shh${config.shouldEncrypt ? ' and git-crypt' : ''}"`)
+      execSync(
+        `git commit -e -m "chore: init shh${config.shouldEncrypt ? ' and git-crypt' : ''}"`,
+        { stdio: 'inherit' }
+      )
     }
   })
 
