@@ -57,7 +57,9 @@ const configureGitIgnore = (config: EnvsConfig, shouldStageFiles = false) => {
  */
 const configure = (config: EnvsConfig, shouldStageFiles = false) => {
   // 1. Generate key.
-  execSync('git-crypt init --key-name shh')
+  if (!fs.existsSync(path.join(config.cwd, '.git/git-crypt/keys/shh'))) {
+    execSync('git-crypt init --key-name shh', { cwd: config.cwd })
+  }
 
   // 2. Configure .gitattributes
   configureGitAttributes(config, shouldStageFiles)

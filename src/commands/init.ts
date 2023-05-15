@@ -89,7 +89,7 @@ const getQuestions = (options: Options) => {
   questions.push({
     name: 'gitAction',
     type: 'list',
-    default: 'commit',
+    default: 'stage',
     choices: [
       { name: 'Skip', value: 'skip' },
       { name: 'Stage', value: 'stage' },
