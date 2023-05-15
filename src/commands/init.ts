@@ -1,5 +1,7 @@
+import { execSync } from 'child_process'
 import { Command } from 'commander'
-import inquirer, { Question } from 'inquirer'
+import inquirer from 'inquirer'
+import { Question, ListQuestion } from 'inquirer'
 
 import { log } from '../lib/utils'
 import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
@@ -11,7 +13,7 @@ type Options = Partial<EnvsConfig>
 
 type Answers = Options & {
   shouldCreateTemplate: boolean
-  shouldStageFiles: boolean
+  gitAction: 'skip' | 'stage' | 'commit'
 }
 
 /**
@@ -19,7 +21,7 @@ type Answers = Options & {
  */
 const getQuestions = (options: Options) => {
   const initials = initConfig({})
-  const questions: Question[] = []
+  const questions: Array<Question<Answers> | ListQuestion<Answers>> = []
 
   if (!options.copy) {
     questions.push({
@@ -85,10 +87,15 @@ const getQuestions = (options: Options) => {
   })
 
   questions.push({
-    name: 'shouldStageFiles',
-    type: 'confirm',
-    default: true,
-    message: 'Whether file changes during Shh should be staged in git',
+    name: 'gitAction',
+    type: 'list',
+    default: 'commit',
+    choices: [
+      { name: 'Skip', value: 'skip' },
+      { name: 'Stage', value: 'stage' },
+      { name: 'Commit', value: 'commit' },
+    ],
+    message: 'Whether file changes during Shh configuration should be staged/commited',
   })
 
   // Add form length status.
@@ -113,13 +120,13 @@ const command = new Command()
 
     // 1. Create .shhrc
     await log('Creating .shhrc')
-    await writeConfig(config, config.shouldStageFiles)
+    await writeConfig(config, config.gitAction !== 'skip')
     await log('Creating .shhrc: ok', true)
 
     // 2. Optionally create template file.
     if (input.shouldCreateTemplate) {
       await log(`Creating ${config.template}`)
-      await createTemplate(config, config.shouldStageFiles)
+      await createTemplate(config, config.gitAction !== 'skip')
       await log(`Creating ${config.template}: ok`, true)
     }
 
@@ -136,8 +143,12 @@ const command = new Command()
 
       // 4. Configure git-crypt.
       await log('Configuring git-crypt')
-      await gitCrypt.configure(config, config.shouldStageFiles)
+      await gitCrypt.configure(config, config.gitAction !== 'skip')
       await log('Configuring git-crypt: ok', true)
+    }
+
+    if (config.gitAction === 'commit') {
+      execSync(`git commit -e -m "chore: init shh${config.shouldEncrypt ? ' and git-crypt' : ''}"`)
     }
   })
 
