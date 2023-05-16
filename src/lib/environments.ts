@@ -130,4 +130,5 @@ export {
   isValidName,
   templateExists,
   createTemplate,
+  readTemplate,
 }

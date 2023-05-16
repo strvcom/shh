@@ -21,7 +21,7 @@ const promptEnvironment = async (config: EnvsConfig) =>
         name: 'environment',
         type: 'input',
         message: 'Give the new environment a name',
-        validate: (input) => isValidName(input, config),
+        validate: (input) => isValidName(input, config, true),
       },
     ])
   ).environment as string
