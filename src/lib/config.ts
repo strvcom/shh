@@ -1,7 +1,6 @@
 import { Command } from 'commander'
 import fs from 'fs'
 import path from 'path'
-import { stage } from './utils'
 
 export interface EnvsConfig {
   /**
@@ -85,7 +84,7 @@ const readConfig = (options?: Partial<EnvsConfig>): Partial<EnvsConfig> => {
 /**
  * Write the .shhrc config file.
  */
-const writeConfig = (config: Partial<EnvsConfig>, shouldStageFiles = false) => {
+const writeConfig = (config: Partial<EnvsConfig>) => {
   const { cwd, ...options } = config
   const root = cwd ?? process.cwd()
   const configPath = path.resolve(root, '.shhrc')
@@ -112,10 +111,6 @@ const writeConfig = (config: Partial<EnvsConfig>, shouldStageFiles = false) => {
 
   if (Object.keys(content).length) {
     fs.writeFileSync(configPath, JSON.stringify(content, null, 2) + '\n', 'utf-8')
-
-    if (shouldStageFiles) {
-      stage(configPath)
-    }
   }
 }
 

@@ -4,7 +4,6 @@ import { globSync } from 'glob'
 import inquirer from 'inquirer'
 
 import type { EnvsConfig } from './config'
-import { stage } from './utils'
 
 export interface Environment {
   file: string
@@ -31,7 +30,7 @@ const readTemplate = (config: EnvsConfig) =>
 /**
  * Create template file.
  */
-const createTemplate = async (config: EnvsConfig, shouldStageFiles = false) => {
+const createTemplate = async (config: EnvsConfig) => {
   const file = path.resolve(config.cwd, config.template)
   const { content } = await inquirer.prompt([
     {
@@ -43,10 +42,6 @@ const createTemplate = async (config: EnvsConfig, shouldStageFiles = false) => {
   ])
 
   fs.writeFileSync(file, content, 'utf-8')
-
-  if (shouldStageFiles) {
-    stage(file)
-  }
 }
 
 /**

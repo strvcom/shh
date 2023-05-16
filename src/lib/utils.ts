@@ -1,4 +1,3 @@
-import { execSync } from 'child_process'
 import logUpdate from 'log-update'
 
 /**
@@ -19,9 +18,4 @@ const log = async (message: string, done = false) => {
   }
 }
 
-/**
- * Add file/pattern to git staged.
- */
-const stage = (file: string) => execSync(`git add ${file}`)
-
-export { sleep, log, stage }
+export { sleep, log }

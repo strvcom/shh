@@ -4,7 +4,6 @@ import { execSync } from 'child_process'
 
 import type { EnvsConfig } from './config'
 import { getEnvironmentsPattern } from './environments'
-import { stage } from './utils'
 
 /**
  * Safely verify if git-crypt is installed.
@@ -21,51 +20,43 @@ const checkAvailability = () => {
 /**
  * Configure .gitattributes file with git-crypt.
  */
-const configureGitAttributes = (config: EnvsConfig, shouldStageFiles = false) => {
+const configureGitAttributes = (config: EnvsConfig) => {
   const file = path.resolve(config.cwd, '.gitattributes')
   const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
   const append = `${getEnvironmentsPattern(config)} filter=git-crypt diff=git-crypt`
 
   if (!content.includes(append)) {
     fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
-
-    if (shouldStageFiles) {
-      stage(file)
-    }
   }
 }
 
 /**
  * Configure .gitignore file with git-crypt.
  */
-const configureGitIgnore = (config: EnvsConfig, shouldStageFiles = false) => {
+const configureGitIgnore = (config: EnvsConfig) => {
   const file = path.resolve(config.cwd, '.gitignore')
   const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
   const append = `${config.target}`
 
   if (!content.includes(append)) {
     fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
-
-    if (shouldStageFiles) {
-      stage(file)
-    }
   }
 }
 
 /**
  * Initializes git-crypt necessary configuration.
  */
-const configure = (config: EnvsConfig, shouldStageFiles = false) => {
+const configure = (config: EnvsConfig) => {
   // 1. Generate key.
   if (!fs.existsSync(path.join(config.cwd, '.git/git-crypt/keys/shh'))) {
     execSync('git-crypt init --key-name shh', { cwd: config.cwd })
   }
 
   // 2. Configure .gitattributes
-  configureGitAttributes(config, shouldStageFiles)
+  configureGitAttributes(config)
 
   // 3. Configure .gitignore
-  configureGitIgnore(config, shouldStageFiles)
+  configureGitIgnore(config)
 }
 
 export { checkAvailability, configure }

@@ -86,18 +86,6 @@ const getQuestions = (options: Options) => {
     when: (answers) => !templateExists({ ...initials, ...answers }),
   })
 
-  questions.push({
-    name: 'gitAction',
-    type: 'list',
-    default: 'stage',
-    choices: [
-      { name: 'Skip', value: 'skip' },
-      { name: 'Stage', value: 'stage' },
-      { name: 'Commit', value: 'commit' },
-    ],
-    message: 'Whether file changes during Shh configuration should be staged/commited',
-  })
-
   // Add form length status.
   for (let i = 0; i < questions.length; i++) {
     questions[i].message = `(${i + 1}/${questions.length}) ${questions[i].message}`
@@ -120,13 +108,13 @@ const command = new Command()
 
     // 1. Create .shhrc
     await log('Creating .shhrc')
-    await writeConfig(config, config.gitAction !== 'skip')
+    await writeConfig(config)
     await log('Creating .shhrc: ok', true)
 
     // 2. Optionally create template file.
     if (input.shouldCreateTemplate) {
       await log(`Creating ${config.template}`)
-      await createTemplate(config, config.gitAction !== 'skip')
+      await createTemplate(config)
       await log(`Creating ${config.template}: ok`, true)
     }
 
@@ -143,15 +131,8 @@ const command = new Command()
 
       // 4. Configure git-crypt.
       await log('Configuring git-crypt')
-      await gitCrypt.configure(config, config.gitAction !== 'skip')
+      await gitCrypt.configure(config)
       await log('Configuring git-crypt: ok', true)
-    }
-
-    if (config.gitAction === 'commit') {
-      execSync(
-        `git commit -e -m "chore: init shh${config.shouldEncrypt ? ' and git-crypt' : ''}"`,
-        { stdio: 'inherit' }
-      )
     }
   })
 
