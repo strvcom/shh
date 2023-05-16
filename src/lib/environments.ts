@@ -79,7 +79,7 @@ const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] 
     })
 
   if (!allowEmpty && !environments.length) {
-    throw new Error(`No environment found at "${config.environments}"`)
+    throw new Error(`No environments found at "${config.environments}"`)
   }
 
   return environments
@@ -90,8 +90,8 @@ const filenameRegex = /^[\w\-.]+$/
 /**
  * Validate an environment name.
  */
-const isValidName = (name: string, config: EnvsConfig) => {
-  const existing = getEnvironments(config).map(({ name }) => name)
+const isValidName = (name: string, config: EnvsConfig, allowEmpty = false) => {
+  const existing = getEnvironments(config, allowEmpty).map(({ name }) => name)
 
   // Validate uniqueness.
   if (existing.some((environment) => environment === name)) {
@@ -110,7 +110,7 @@ const isValidName = (name: string, config: EnvsConfig) => {
  * Create a new environment file based on the template file.
  */
 const createEnviroment = (name: string, config: EnvsConfig) => {
-  const validationResult = isValidName(name, config)
+  const validationResult = isValidName(name, config, true)
 
   if (validationResult !== true) {
     console.log(`Validation error: ${validationResult}`)
@@ -119,6 +119,7 @@ const createEnviroment = (name: string, config: EnvsConfig) => {
 
   const filePath = path.resolve(config.cwd, config.environments.replace('[name]', name))
 
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
   fs.writeFileSync(filePath, readTemplate(config).replace('[name]', name), 'utf-8')
 }
 
