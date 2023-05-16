@@ -1,55 +1,32 @@
 import fs from 'fs'
 import dotenv from 'dotenv'
-import inquirer from 'inquirer'
 import { Command } from 'commander'
 
-import { log } from '../lib/utils'
 import { initConfig, addConfigOptions } from '../lib/config'
 import type { EnvsConfig } from '../lib/config'
-import {
-  createEnviroment,
-  getEnvironments,
-  isValidName,
-  readTemplate,
-  templateExists,
-} from '../lib/environments'
-import path from 'path'
+import { getEnvironments, readTemplate, templateExists } from '../lib/environments'
 
 type Options = Partial<EnvsConfig> & {
-  environment?: string
+  onlyWarnings?: string
 }
 
-interface Comparison {
+interface ParsedEnvironment {
   name: string
   variables: Record<string, string>
 }
 
 interface Diff {
   [name: string]: {
-    [variable: string]: 'x' | '<empty>'
+    [variable: string]: 'empty' | 'missing'
   }
 }
-
-/**
- * Prompt environment name.
- */
-const promptEnvironment = async (config: EnvsConfig) =>
-  (
-    await inquirer.prompt([
-      {
-        name: 'environment',
-        type: 'input',
-        message: 'Give the new environment a name',
-        validate: (input) => isValidName(input, config),
-      },
-    ])
-  ).environment as string
 
 /**
  * Command to compare existing environment variables and their existing keys.
  */
 const command = new Command()
   .name('diff')
+  .option('--only-warnings', 'Whether only missing/empty variables should be listed', false)
   .description('Compare environments existing keys.')
   .action(async () => {
     const options = command.optsWithGlobals<Options>()
@@ -61,11 +38,11 @@ const command = new Command()
       return
     }
 
-    const comparison: Comparison[] = []
+    const parsed: ParsedEnvironment[] = []
 
     // Include template if existing.
     if (templateExists(config)) {
-      comparison.push({
+      parsed.push({
         name: 'template',
         variables: dotenv.parse(readTemplate(config)),
       })
@@ -73,43 +50,48 @@ const command = new Command()
 
     // Include all environment files.
     for (const { name, file } of environments) {
-      comparison.push({
+      parsed.push({
         name,
         variables: dotenv.parse(fs.readFileSync(file)),
       })
     }
 
-    const allVariables = comparison
+    const allVariables = parsed
       .reduce((carry, { variables }) => carry.concat(Object.keys(variables)), [] as string[])
       .filter((name, i, arr) => arr.indexOf(name) === i)
       .sort()
 
-    let shouldWarn = false
+    const warnings: string[] = []
     const diff: Diff = {}
 
-    for (const { name, variables } of comparison) {
+    for (const { name, variables } of parsed) {
       diff[name] = {}
 
       for (const variable of allVariables) {
-        if (!(variable in variables)) {
-          shouldWarn = true
-          continue
-        }
+        const missing = !(variable in variables)
+        const filled = !missing && Boolean(variables[variable])
+        const state = missing ? 'missing' : filled ? 'ok' : 'empty'
 
-        if (variable in variables) {
-          const isEmpty = !Boolean(variables[variable])
+        if (state !== 'ok') {
+          diff[name][variable] = state
 
-          shouldWarn = shouldWarn || isEmpty
-
-          diff[name][variable] = isEmpty ? '<empty>' : 'x'
+          warnings.push(variable)
         }
       }
     }
 
-    console.table(diff)
+    const columns = config.onlyWarnings ? warnings : allVariables
 
-    if (shouldWarn) {
-      console.log('WARNING: There are either diverging variables or empty variables in some files.')
+    if (columns.length) {
+      console.table(diff, columns)
+    }
+
+    if (warnings.length) {
+      console.warn(
+        'WARNING: There are either diverging variables or empty variables in some files.'
+      )
+    } else {
+      console.log('All good!')
     }
   })
 
