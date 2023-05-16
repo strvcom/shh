@@ -29,28 +29,10 @@ export interface EnvsConfig {
   shouldEncrypt: boolean
 
   /**
-   * The path to the git-crypt key file.
-   */
-  encryptionKey: string
-
-  /**
    * The root of the application.
    */
   cwd: string
 }
-
-// prettier-ignore
-const configOptions = {
-  copy: { flags: '-c, --copy', description: 'Whether we should install environments using copy instead of symlink' },
-  target: { flags: '-t, --target <path>', description: 'The path to the managed env file' },
-  template: { flags: '-T, --template <path>', description: 'The path to the env template file' },
-  environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files' },
-  shouldEncrypt: { flags: '-x, --should-encrypt', description: 'Whether we should encrypt environment files using git-crypt' },
-  encryptionKey: { flags: '-k, --key <path>', description: 'The path to the git-crypt key file' },
-  cwd: { flags: '--cwd <path>', description: 'The root of the application' },
-}
-
-const configKeys = Object.keys(configOptions)
 
 const defaults: EnvsConfig = {
   copy: false,
@@ -58,16 +40,27 @@ const defaults: EnvsConfig = {
   template: './envs/template',
   environments: './envs/env.[name]',
   shouldEncrypt: true,
-  encryptionKey: './envs/key',
   cwd: process.cwd(),
 }
+
+// prettier-ignore
+const configOptions = {
+  copy: { flags: '-c, --copy', description: 'Whether we should install environments using copy instead of symlink', initial: defaults.copy },
+  target: { flags: '-t, --target <path>', description: 'The path to the managed env file', initial: defaults.target },
+  template: { flags: '-T, --template <path>', description: 'The path to the env template file', initial: defaults.template },
+  environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files', initial: defaults.environments },
+  shouldEncrypt: { flags: '-x, --should-encrypt', description: 'Whether we should encrypt environment files using git-crypt', initial: defaults.shouldEncrypt },
+  cwd: { flags: '--cwd <path>', description: 'The root of the application', initial: defaults.cwd },
+}
+
+const configKeys = Object.keys(configOptions)
 
 /**
  * Apply common options to to a command.
  */
 const addConfigOptions = (command: Command) =>
   Object.values(configOptions).reduce(
-    (command, { flags, description }) => command.option(flags, description),
+    (command, { flags, description, initial }) => command.option(flags, description, initial),
     command
   )
 

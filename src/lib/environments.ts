@@ -64,8 +64,6 @@ const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] 
   )
 
   const environments = globSync(pattern, { cwd: config.cwd, absolute: true })
-    // Ignore key file.
-    .filter((file) => !file.endsWith(config.encryptionKey))
     // Ignore template file.
     .filter((file) => !file.endsWith(config.template))
     // Resolve environment meta from file path.

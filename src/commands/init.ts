@@ -68,16 +68,6 @@ const getQuestions = (options: Options) => {
     })
   }
 
-  if (!options.encryptionKey) {
-    questions.push({
-      name: 'encryptionKey',
-      type: 'string',
-      default: initials.encryptionKey,
-      message: configOptions.encryptionKey.description,
-      when: (answers) => !!answers.shouldEncrypt,
-    })
-  }
-
   questions.push({
     name: 'shouldCreateTemplate',
     type: 'confirm',
