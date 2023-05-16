@@ -26,7 +26,7 @@ export interface EnvsConfig {
   /**
    * Whether we should encrypt environment files using git-crypt.
    */
-  shouldEncrypt: boolean
+  encrypt: boolean
 
   /**
    * The root of the application.
@@ -39,7 +39,7 @@ const defaults: EnvsConfig = {
   target: '.env',
   template: './envs/template',
   environments: './envs/env.[name]',
-  shouldEncrypt: true,
+  encrypt: true,
   cwd: process.cwd(),
 }
 
@@ -49,7 +49,7 @@ const configOptions = {
   target: { flags: '-t, --target <path>', description: 'The path to the managed env file', initial: defaults.target },
   template: { flags: '-T, --template <path>', description: 'The path to the env template file', initial: defaults.template },
   environments: { flags: '-E, --environments <path>', description: 'The path pattern to the environment files', initial: defaults.environments },
-  shouldEncrypt: { flags: '-x, --should-encrypt', description: 'Whether we should encrypt environment files using git-crypt', initial: defaults.shouldEncrypt },
+  encrypt: { flags: '--no-encrypt', description: 'Whether we should skip encryption setup (git-crypt)', initial: defaults.encrypt },
   cwd: { flags: '--cwd <path>', description: 'The root of the application', initial: defaults.cwd },
 }
 
@@ -102,9 +102,10 @@ const writeConfig = (config: Partial<EnvsConfig>) => {
     }
   }
 
-  if (Object.keys(content).length) {
-    fs.writeFileSync(configPath, JSON.stringify(content, null, 2) + '\n', 'utf-8')
-  }
+  // Skip writting if not different than defaults.
+  return Object.keys(content).length
+    ? (fs.writeFileSync(configPath, JSON.stringify(content, null, 2) + '\n', 'utf-8'), true)
+    : false
 }
 
 /**

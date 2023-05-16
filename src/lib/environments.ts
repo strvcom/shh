@@ -41,6 +41,7 @@ const createTemplate = async (config: EnvsConfig) => {
     },
   ])
 
+  fs.mkdirSync(path.dirname(file), { recursive: true })
   fs.writeFileSync(file, content, 'utf-8')
 }
 
