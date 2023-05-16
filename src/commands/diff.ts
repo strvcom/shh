@@ -72,11 +72,12 @@ const command = new Command()
         const filled = !missing && Boolean(variables[variable])
         const state = missing ? 'missing' : filled ? 'ok' : 'empty'
 
-        if (state !== 'ok') {
-          diff[name][variable] = state
-
-          warnings.push(variable)
+        if (state === 'ok' || (name === 'template' && state === 'empty')) {
+          continue
         }
+
+        diff[name][variable] = state
+        warnings.push(variable)
       }
     }
 
