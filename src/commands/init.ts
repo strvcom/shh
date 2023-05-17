@@ -1,14 +1,14 @@
-import { Command, Option } from 'commander'
+import { Command } from 'commander'
 import inquirer from 'inquirer'
 import { Question, ListQuestion } from 'inquirer'
 
-import { log } from '../lib/utils'
-import { configOptions, initConfig, addConfigOptions, writeConfig } from '../lib/config'
-import type { EnvsConfig } from '../lib/config'
+import { createLogger } from '../lib/utils'
+import { initConfig, addConfigOptions, writeConfig } from '../lib/config'
+import type { ShhConfig } from '../lib/config'
 import { templateExists, createTemplate } from '../lib/environments'
 import * as gitCrypt from '../lib/git-crypt'
 
-type Options = Partial<EnvsConfig>
+type Options = Partial<ShhConfig>
 
 type Answers = Options & {
   shouldCreateTemplate: boolean
@@ -17,7 +17,7 @@ type Answers = Options & {
 /**
  * Build inquirer questions based on passed-in params.
  */
-const getQuestions = (options: Options) => {
+const getQuestions = () => {
   const initials = initConfig({})
   const questions: Array<Question<Answers> | ListQuestion<Answers>> = []
 
@@ -47,34 +47,36 @@ const command = new Command()
     let created = false
 
     const options = command.optsWithGlobals()
-    const questions = getQuestions(options)
+    const questions = getQuestions()
+    const config = initConfig(options)
+    const logger = createLogger(config)
+
     const input = (questions.length ? await inquirer.prompt(questions, options) : {}) as Answers
-    const config = initConfig({ ...options, ...input })
 
     // 1. Create .shhrc
-    await log('Creating .shhrc')
+    await logger.log('Creating .shhrc')
     created = await writeConfig(config)
-    await log(`Creating .shhrc: ${created ? 'ok' : 'skipped'}`, true)
+    await logger.log(`Creating .shhrc: ${created ? 'ok' : 'skipped'}`, true)
 
     // 2. Optionally create template file.
     if (input.shouldCreateTemplate) {
-      await log(`Creating ${config.template}`)
+      await logger.log(`Creating ${config.template}`)
       await createTemplate(config)
-      await log(`Creating ${config.template}: ok`, true)
+      await logger.log(`Creating ${config.template}: ok`, true)
     }
 
     if (config.encrypt) {
-      await log('Checking git-crypt install')
+      await logger.log('Checking git-crypt install')
       // 3. Verify if git-crypt is installed.
       if (!gitCrypt.checkAvailability()) {
-        await log('Checking git-crypt install: fail', true)
+        await logger.log('Checking git-crypt install: fail', true)
         throw new Error('git-crypt not found. Check README.md for instructions.')
       }
-      await log('Checking git-crypt install: ok', true)
+      await logger.log('Checking git-crypt install: ok', true)
       // 4. Configure git-crypt.
-      await log('Configuring git-crypt')
+      await logger.log('Configuring git-crypt')
       await gitCrypt.configure(config)
-      await log('Configuring git-crypt: ok', true)
+      await logger.log('Configuring git-crypt: ok', true)
     }
   })
 

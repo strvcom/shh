@@ -3,13 +3,14 @@ import path from 'path'
 import { Command } from 'commander'
 import inquirer from 'inquirer'
 
-import { log } from '../lib/utils'
+import { createLogger } from '../lib/utils'
 import { initConfig, addConfigOptions } from '../lib/config'
-import type { EnvsConfig } from '../lib/config'
+import type { ShhConfig } from '../lib/config'
 import { getEnvironments } from '../lib/environments'
 import { Environment } from '../lib/environments'
+import { unlock } from '../lib/git-crypt'
 
-type Options = Partial<EnvsConfig> & {
+type Options = Partial<ShhConfig> & {
   environment?: string
 }
 

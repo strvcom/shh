@@ -3,11 +3,11 @@ import dotenv from 'dotenv'
 import { Command } from 'commander'
 
 import { initConfig, addConfigOptions } from '../lib/config'
-import type { EnvsConfig } from '../lib/config'
+import type { ShhConfig } from '../lib/config'
 import { getEnvironments, readTemplate, templateExists } from '../lib/environments'
 
-type Options = Partial<EnvsConfig> & {
-  onlyWarnings?: string
+type Options = Partial<ShhConfig> & {
+  onlyWarnings: boolean
 }
 
 interface ParsedEnvironment {
@@ -26,8 +26,7 @@ interface Diff {
  */
 const command = new Command()
   .name('diff')
-  .option('--only-warnings', 'Whether only missing/empty variables should be listed', false)
-  .description('Compare environments existing keys.')
+  .description('Compare environments existing keys')
   .action(async () => {
     const options = command.optsWithGlobals<Options>()
     const config = initConfig(options)
@@ -35,6 +34,7 @@ const command = new Command()
 
     if (!environments.length) {
       console.log(`No environment found at ${config.environments}. Aborting.`)
+
       return
     }
 

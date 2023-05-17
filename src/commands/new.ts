@@ -1,20 +1,20 @@
 import { Command } from 'commander'
 import inquirer from 'inquirer'
 
-import { log } from '../lib/utils'
+import { createLogger } from '../lib/utils'
 import { initConfig, addConfigOptions } from '../lib/config'
-import type { EnvsConfig } from '../lib/config'
+import type { GlobalOptions } from '../lib/config'
 import { createEnviroment, isValidName } from '../lib/environments'
 import path from 'path'
 
-type Options = Partial<EnvsConfig> & {
+type Options = Partial<GlobalOptions> & {
   environment?: string
 }
 
 /**
  * Prompt environment name.
  */
-const promptEnvironment = async (config: EnvsConfig) =>
+const promptEnvironment = async (config: GlobalOptions) =>
   (
     await inquirer.prompt([
       {
@@ -36,12 +36,13 @@ const command = new Command()
   .action(async () => {
     const options = command.optsWithGlobals<Options>()
     const config = initConfig(options)
+    const logger = createLogger(config)
     const environment = config.environment ?? (await promptEnvironment(config))
     const file = path.resolve(config.cwd, config.environments.replace('[name]', environment))
 
-    await log(`Creating environment ${environment} at ${file}`)
+    await logger.log(`Creating environment ${environment} at ${file}`)
     createEnviroment(environment, config)
-    await log(`Creating environment ${environment}: ok`)
+    await logger.log(`Creating environment ${environment}: ok`, true)
   })
 
 addConfigOptions(command)
