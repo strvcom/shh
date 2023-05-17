@@ -5,29 +5,43 @@ import inquirer from 'inquirer'
 
 import { createLogger } from '../lib/utils'
 import { initConfig, addConfigOptions } from '../lib/config'
-import type { ShhConfig } from '../lib/config'
+import type { GlobalOptions } from '../lib/config'
 import { getEnvironments } from '../lib/environments'
-import { Environment } from '../lib/environments'
 import { unlock } from '../lib/git-crypt'
 
-type Options = Partial<ShhConfig> & {
+type Config = GlobalOptions & {
   environment?: string
 }
 
 /**
  * Inquire environment.
  */
-const selectEnvironment = async (environments: Environment[]) =>
-  (
-    await inquirer.prompt([
-      {
-        name: 'environment',
-        type: 'list',
-        message: 'Select the environment to install',
-        choices: environments.map(({ name }) => name),
-      },
-    ])
-  ).environment as string
+const ensureEnvironment = async (config: Config) => {
+  let selected = config.environment
+  const environments = getEnvironments(config)
+
+  // Prompt environment name if possible.
+  if (!selected && config.logLevel === 'log') {
+    selected = (
+      await inquirer.prompt([
+        {
+          name: 'environment',
+          type: 'list',
+          message: 'Select the environment to install',
+          choices: environments.map(({ name }) => name),
+        },
+      ])
+    ).environment as string
+  }
+
+  const environment = environments.find(({ name }) => name === selected)
+
+  if (!environment) {
+    throw new Error(`File not found for environment "${selected}".`)
+  }
+
+  return environment
+}
 
 /**
  * Main command to install a environment.
@@ -35,41 +49,45 @@ const selectEnvironment = async (environments: Environment[]) =>
 const command = new Command()
   .allowExcessArguments(false)
   .option('-e, --environment <name>', 'The environment to install')
-  .action(async (options: Options) => {
+  .action(async () => {
+    const options = command.optsWithGlobals<Config>()
     const config = initConfig(options)
-    const environments = getEnvironments(config)
-    const selected = config.environment ?? (await selectEnvironment(environments))
-    const environment = environments.find(({ name }) => name === selected)
+    const logger = createLogger(config)
 
-    if (!environment) {
-      throw new Error(`File inexistant for environment "${selected}".`)
+    // 1. Unlock repository. Ask for key if not available.
+    if (config.encrypt) {
+      logger.log('Local repository not configured with Shh yet.')
+      await unlock(config)
     }
+
+    const environment = await ensureEnvironment(config)
 
     const paths = {
       source: environment.file,
       target: path.resolve(config.cwd, config.target),
     }
 
+    // Safe-guard against general exploitation of globs.
     if (paths.target.includes('*')) {
       throw new Error(`Invalid target env file path: "${paths.target}"`)
     }
 
-    await log(`Creating ${config.target} symlink to ${environment.relative}`)
+    await logger.log(`Installing ${environment.name}`)
 
     try {
-      // Ensure it's clear.`
+      // 2. Ensure target is clear.
       fs.rmSync(paths.target, { force: true })
 
-      // Install env file.
+      // 3. Install env file.
       config.copy
         ? fs.copyFileSync(paths.source, paths.target)
         : fs.symlinkSync(paths.source, paths.target)
     } catch (err) {
-      console.error(err)
+      logger.error(err)
       throw new Error(`Failed creating ${config.target} symlink to ${environment.relative}`)
     }
 
-    await log(`Creating ${config.target} symlink to ${environment.relative}: ok`)
+    await logger.log(`Installing ${environment.name}: ok`, true)
   })
 
 addConfigOptions(command)
