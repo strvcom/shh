@@ -1,6 +1,7 @@
 // @ts-ignore
 import pkg from '../package.json'
 
+import { GlobalOptions } from './lib/config'
 import { command as program } from './commands/main'
 import { command as init } from './commands/init'
 import { command as newEnvironment } from './commands/new'
@@ -18,4 +19,11 @@ program
   .addCommand(diff)
 
   // Execute.
-  .parse(process.argv)
+  .parseAsync(process.argv)
+
+  // Obfuscate errors on silent mode.
+  .catch((err) =>
+    program.optsWithGlobals<GlobalOptions>().logLevel === 'nothing'
+      ? process.exit(1)
+      : Promise.reject(err)
+  )

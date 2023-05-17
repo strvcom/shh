@@ -42,7 +42,7 @@ export type GlobalOptions = ShhConfig & {
   /**
    * What level of logs to report.
    */
-  logLevel: 'log' | 'silent' | 'warn'
+  logLevel: 'log' | 'silent' | 'warn' | 'nothing'
 }
 
 const defaults: GlobalOptions = {
@@ -66,7 +66,7 @@ const globalOptions = {
 
   // CLI configuraiton
   cwd: new Option('--cwd <path>', 'The root of the application').default(defaults.cwd),
-  logLevel: new Option('-l, --log-level <level>', 'What level of logs to report').default(defaults.logLevel).choices(['log', 'silent', 'warn']),
+  logLevel: new Option('-l, --log-level <level>', 'What level of logs to report').default(defaults.logLevel).choices(['log', 'silent', 'warn', 'nothing']),
 }
 
 /**
