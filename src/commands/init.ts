@@ -3,30 +3,29 @@ import inquirer from 'inquirer'
 import { Question, ListQuestion } from 'inquirer'
 
 import { createLogger } from '../lib/utils'
-import { initConfig, addConfigOptions, writeConfig } from '../lib/config'
+import { initConfig, addConfigOptions, writeConfig, GlobalOptions } from '../lib/config'
 import type { ShhConfig } from '../lib/config'
 import { templateExists, createTemplate } from '../lib/environments'
 import * as gitCrypt from '../lib/git-crypt'
 
 type Options = Partial<ShhConfig>
 
-type Answers = Options & {
+type Answers = {
   shouldCreateTemplate: boolean
 }
 
 /**
  * Build inquirer questions based on passed-in params.
  */
-const getQuestions = () => {
-  const initials = initConfig({})
-  const questions: Array<Question<Answers> | ListQuestion<Answers>> = []
+const getInput = async (config: GlobalOptions): Promise<Answers> => {
+  const questions: Question[] = []
 
   questions.push({
     name: 'shouldCreateTemplate',
     type: 'confirm',
     default: false,
     message: 'No environment template found. Should we create one?',
-    when: (answers) => !templateExists({ ...initials, ...answers }),
+    when: () => !templateExists(config),
   })
 
   // Add form length status.
@@ -34,7 +33,9 @@ const getQuestions = () => {
     questions[i].message = `(${i + 1}/${questions.length}) ${questions[i].message}`
   }
 
-  return questions
+  return config.logLevel === 'log'
+    ? ((await inquirer.prompt(questions)) as Answers)
+    : { shouldCreateTemplate: false }
 }
 
 /**
@@ -47,11 +48,9 @@ const command = new Command()
     let created = false
 
     const options = command.optsWithGlobals()
-    const questions = getQuestions()
     const config = initConfig(options)
     const logger = createLogger(config)
-
-    const input = (questions.length ? await inquirer.prompt(questions, options) : {}) as Answers
+    const input = await getInput(config)
 
     // 1. Create .shhrc
     await logger.log('Creating .shhrc')
