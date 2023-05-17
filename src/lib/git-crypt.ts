@@ -45,9 +45,9 @@ interface Files {
  * Resolve the paths needed to configure shh & git-crypt.
  */
 const getPaths = (config: GlobalOptions): Files => ({
-  key: path.join(config.cwd, '.git/shh/key'),
-  attributes: path.join(config.cwd, '.gitattributes'),
-  ignore: path.join(config.cwd, '.gitignore'),
+  key: path.resolve(config.cwd, '.git/shh/key'),
+  attributes: path.resolve(config.cwd, '.gitattributes'),
+  ignore: path.resolve(config.cwd, '.gitignore'),
 })
 
 interface Step {
@@ -63,18 +63,25 @@ const steps: Record<StepName, Step> = {
    */
   key: {
     run: (_config, { key: file }) => {
-      const spawn = spawnSync('git-crypt', ['init', '--key-name', 'shh'])
-      const error = spawn.stderr.toString().trim()
-
-      // Throw unnexpected errors, but accept existing key.
-      if (spawn.status !== 0 && !error.includes('initialized with git-crypt')) {
-        throw new Error(error.replace('Error: ', ''))
-      }
-
-      // Use environment available key.
+      // 1. Persist any provided key.
       if (encodedKey) {
         fs.mkdirSync(path.dirname(file), { recursive: true })
         fs.writeFileSync(file, decode(encodedKey), 'binary')
+      }
+
+      // 2.A. Inititalize from scratch, when no key file available.
+      if (!fs.existsSync(file)) {
+        const spawn = spawnSync('git-crypt', ['init'])
+        const error = spawn.stderr.toString().trim()
+
+        // Throw unnexpected errors, but accept existing git-crypt key.
+        if (spawn.status !== 0 && !error.includes('initialized with git-crypt')) {
+          throw new Error(error.replace('Error: ', ''))
+        }
+      }
+      // 2.B. Unlock, when a key file is available.
+      else {
+        execSync(`git-crypt unlock ${file}`)
       }
     },
 
@@ -138,11 +145,9 @@ const configure = async (config: GlobalOptions) => {
  * Ensure a encoded key is provided.
  */
 const ensureKey = async (config: GlobalOptions) => {
-  let key = process.env.SHH_KEY as string
-
   // Let use input on first usage on new clone.
-  if (!key && config.logLevel === 'log') {
-    key = (
+  if (!encodedKey && config.logLevel === 'log') {
+    encodedKey = (
       await inquirer.prompt([
         {
           name: 'key',
@@ -154,13 +159,11 @@ const ensureKey = async (config: GlobalOptions) => {
     ).key as string
   }
 
-  const valid = isValidKey(key)
+  const valid = isValidKey(encodedKey as string)
 
   if (valid !== true) {
     throw new Error(valid)
   }
-
-  return (encodedKey = key)
 }
 
 /**
