@@ -3,7 +3,7 @@ import path from 'path'
 import { globSync } from 'glob'
 import inquirer from 'inquirer'
 
-import type { EnvsConfig } from './config'
+import type { GlobalOptions } from './config'
 
 export interface Environment {
   file: string
@@ -16,13 +16,13 @@ const defaultTemplate = '# Environment: [name]\n'
 /**
  * Check if a template file exists.
  */
-const templateExists = (config: EnvsConfig) =>
+const templateExists = (config: GlobalOptions) =>
   fs.existsSync(path.resolve(config.cwd, config.template))
 
 /**
  * Read the template file.
  */
-const readTemplate = (config: EnvsConfig) =>
+const readTemplate = (config: GlobalOptions) =>
   templateExists(config)
     ? fs.readFileSync(path.resolve(config.cwd, config.template), 'utf-8')
     : defaultTemplate
@@ -30,7 +30,7 @@ const readTemplate = (config: EnvsConfig) =>
 /**
  * Create template file.
  */
-const createTemplate = async (config: EnvsConfig) => {
+const createTemplate = async (config: GlobalOptions) => {
   const file = path.resolve(config.cwd, config.template)
   const { content } = await inquirer.prompt([
     {
@@ -48,12 +48,12 @@ const createTemplate = async (config: EnvsConfig) => {
 /**
  * Translate environments pattern into glob pattern.
  */
-const getEnvironmentsPattern = (config: EnvsConfig) => config.environments.replace('[name]', '*')
+const getEnvironmentsPattern = (config: GlobalOptions) => config.environments.replace('[name]', '*')
 
 /**
  * Resolve environment paths and their names.
  */
-const getEnvironments = (config: EnvsConfig, allowEmpty = false): Environment[] => {
+const getEnvironments = (config: GlobalOptions, allowEmpty = false): Environment[] => {
   const pattern = getEnvironmentsPattern(config)
 
   const regex = new RegExp(
@@ -90,7 +90,7 @@ const filenameRegex = /^[\w\-.]+$/
 /**
  * Validate an environment name.
  */
-const isValidName = (name: string, config: EnvsConfig, allowEmpty = false) => {
+const isValidName = (name: string, config: GlobalOptions, allowEmpty = false) => {
   const existing = getEnvironments(config, allowEmpty).map(({ name }) => name)
 
   // Validate uniqueness.
@@ -109,7 +109,7 @@ const isValidName = (name: string, config: EnvsConfig, allowEmpty = false) => {
 /**
  * Create a new environment file based on the template file.
  */
-const createEnviroment = (name: string, config: EnvsConfig) => {
+const createEnviroment = (name: string, config: GlobalOptions) => {
   const validationResult = isValidName(name, config, true)
 
   if (validationResult !== true) {
