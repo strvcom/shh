@@ -1,14 +1,11 @@
 import { Command } from 'commander'
 import inquirer from 'inquirer'
-import { Question, ListQuestion } from 'inquirer'
+import { Question } from 'inquirer'
 
 import { createLogger } from '../lib/utils'
 import { initConfig, addConfigOptions, writeConfig, GlobalOptions } from '../lib/config'
-import type { ShhConfig } from '../lib/config'
 import { templateExists, createTemplate } from '../lib/environments'
 import * as gitCrypt from '../lib/git-crypt'
-
-type Options = Partial<ShhConfig>
 
 type Answers = {
   shouldCreateTemplate: boolean
@@ -65,13 +62,6 @@ const command = new Command()
     }
 
     if (config.encrypt) {
-      await logger.log('Checking git-crypt install')
-      // 3. Verify if git-crypt is installed.
-      if (!gitCrypt.checkAvailability()) {
-        await logger.log('Checking git-crypt install: fail', true)
-        throw new Error('git-crypt not found. Check README.md for instructions.')
-      }
-      await logger.log('Checking git-crypt install: ok', true)
       // 4. Configure git-crypt.
       await logger.log('Configuring git-crypt')
       await gitCrypt.configure(config)

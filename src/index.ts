@@ -1,7 +1,10 @@
 // @ts-ignore
 import pkg from '../package.json'
 
-import { GlobalOptions } from './lib/config'
+import { initConfig } from './lib/config'
+import type { GlobalOptions } from './lib/config'
+import * as gitCrypt from './lib/git-crypt'
+
 import { command as program } from './commands/main'
 import { command as init } from './commands/init'
 import { command as newEnvironment } from './commands/new'
@@ -12,6 +15,15 @@ program
   .name(pkg.name)
   .description(pkg.description)
   .version(pkg.version)
+
+  .hook('preAction', async (command) => {
+    const options = command.optsWithGlobals()
+    const config = initConfig(options)
+
+    if (config.encrypt && !gitCrypt.checkAvailability()) {
+      throw new Error('git-crypt not installed')
+    }
+  })
 
   // Register sub-commands.
   .addCommand(init)
