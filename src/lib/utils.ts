@@ -44,7 +44,7 @@ const createLogger = (config: GlobalOptions) => ({
   /**
    * Log an error message.
    */
-  error: async (message: string, update = false) => {
+  error: async (message: any, update = false) => {
     if (!update) {
       logUpdate.done()
     } else {

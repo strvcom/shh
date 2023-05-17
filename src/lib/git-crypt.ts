@@ -6,7 +6,10 @@ import type { GlobalOptions } from './config'
 import { getEnvironmentsPattern } from './environments'
 import inquirer from 'inquirer'
 
-let encodedKey = process.env.SHH_KEY
+/**
+ * Encode key to base64.
+ */
+const encode = (key: string) => Buffer.from(key).toString('base64')
 
 /**
  * Decode key from base64.
@@ -37,8 +40,13 @@ const checkAvailability = () => {
 
 interface Files {
   key: string
+  gitCryptKey: string
   attributes: string
   ignore: string
+}
+
+type Config = GlobalOptions & {
+  encodedKey?: string
 }
 
 /**
@@ -46,47 +54,54 @@ interface Files {
  */
 const getPaths = (config: GlobalOptions): Files => ({
   key: path.resolve(config.cwd, '.git/shh/key'),
+  gitCryptKey: path.resolve(config.cwd, '.git/git-crypt/keys/shh'),
   attributes: path.resolve(config.cwd, '.gitattributes'),
   ignore: path.resolve(config.cwd, '.gitignore'),
 })
 
 interface Step {
-  run: (config: GlobalOptions, paths: Files) => void | Promise<void>
-  done: (config: GlobalOptions, paths: Files) => boolean | Promise<boolean>
+  run: (config: Config, paths: Files) => void | Promise<void>
+  done: (config: Config, paths: Files) => boolean | Promise<boolean>
 }
 
-type StepName = keyof Files
+type StepName = 'gitCrypt' | 'attributes' | 'ignore'
 
 const steps: Record<StepName, Step> = {
   /**
    * .git/shh/key
    */
-  key: {
-    run: (_config, { key: file }) => {
-      // 1. Persist any provided key.
-      if (encodedKey) {
-        fs.mkdirSync(path.dirname(file), { recursive: true })
-        fs.writeFileSync(file, decode(encodedKey), 'binary')
+  gitCrypt: {
+    run: (config, paths) => {
+      // 1. Install any provided key for unlocking.
+      if (config.encodedKey) {
+        fs.mkdirSync(path.dirname(paths.key), { recursive: true })
+        fs.writeFileSync(paths.key, decode(config.encodedKey), 'binary')
       }
 
-      // 2.A. Inititalize from scratch, when no key file available.
-      if (!fs.existsSync(file)) {
-        const spawn = spawnSync('git-crypt', ['init'])
-        const error = spawn.stderr.toString().trim()
-
-        // Throw unnexpected errors, but accept existing git-crypt key.
-        if (spawn.status !== 0 && !error.includes('initialized with git-crypt')) {
-          throw new Error(error.replace('Error: ', ''))
+      // 2. If git-crypt needs installing.
+      if (!fs.existsSync(paths.gitCryptKey)) {
+        // 2.a. Unlock using available symetric key.
+        if (fs.existsSync(paths.key) || config.encodedKey) {
+          execSync(`git-crypt unlock ${paths.key}`)
         }
-      }
-      // 2.B. Unlock, when a key file is available.
-      else {
-        execSync(`git-crypt unlock ${file}`)
+        // 2.b. Initialize from scratch
+        else {
+          const spawn = spawnSync('git-crypt', ['init', '--key-name', 'shh'])
+          const error = spawn.stderr.toString().trim()
+
+          // Throw unnexpected errors, but accept existing git-crypt key.
+          if (spawn.status !== 0 && !error.includes('initialized with git-crypt')) {
+            throw new Error(error.replace('Error: ', ''))
+          }
+
+          // Save git-crypt key for posterior unlock.
+          execSync(`git-crypt export-key --key-name shh ${paths.key}`)
+        }
       }
     },
 
     // Safe enough to always run.
-    done: (_config, { key: file }) => fs.existsSync(file),
+    done: (_config, paths) => fs.existsSync(paths.key) && fs.existsSync(paths.gitCryptKey),
   },
 
   /**
@@ -145,6 +160,8 @@ const configure = async (config: GlobalOptions) => {
  * Ensure a encoded key is provided.
  */
 const ensureKey = async (config: GlobalOptions) => {
+  let encodedKey = process.env.SHH_KEY
+
   // Let use input on first usage on new clone.
   if (!encodedKey && config.logLevel === 'log') {
     encodedKey = (
@@ -164,6 +181,8 @@ const ensureKey = async (config: GlobalOptions) => {
   if (valid !== true) {
     throw new Error(valid)
   }
+
+  return encodedKey as string
 }
 
 /**
@@ -172,14 +191,29 @@ const ensureKey = async (config: GlobalOptions) => {
 const unlock = async (config: GlobalOptions) => {
   const paths = getPaths(config)
 
-  // 1. Ensure git-crypt is installed.
-  if (!(await steps.key.done(config, paths))) {
-    await ensureKey(config)
-    await steps.key.run(config, paths)
+  // 1. Ensure git-crypt is configured.
+  if (!(await steps.gitCrypt.done(config, paths))) {
+    const encodedKey = await ensureKey(config)
+    await steps.gitCrypt.run({ ...config, encodedKey }, paths)
   }
 
   // 2. Unlock repository.
   execSync('git-crypt ')
 }
 
-export { checkAvailability, configure, unlock }
+/**
+ * Check if git-crypt and key are installed.
+ */
+const isConfigured = async (config: GlobalOptions) => {
+  const paths = getPaths(config)
+
+  for (const step of Object.values(steps)) {
+    if (!(await step.done(config, paths))) {
+      return false
+    }
+  }
+
+  return true
+}
+
+export { checkAvailability, configure, unlock, isConfigured }

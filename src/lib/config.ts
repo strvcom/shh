@@ -29,8 +29,6 @@ export interface ShhConfig {
   encrypt: boolean
 }
 
-type ShhConfigKey = keyof ShhConfig
-
 const shhConfigKeys = ['copy', 'target', 'template', 'environments', 'encrypt'] as const
 
 export type GlobalOptions = ShhConfig & {

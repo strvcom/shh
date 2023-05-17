@@ -95,12 +95,12 @@ const isValidName = (name: string, config: GlobalOptions, allowEmpty = false) =>
 
   // Validate uniqueness.
   if (existing.some((environment) => environment === name)) {
-    return `Must be different then existing environments (${existing.join(', ')})`
+    return `must be different then existing environments (${existing.join(', ')})`
   }
 
   // Validate format.
   if (!name.match(filenameRegex)) {
-    return `Must be a valid name (${filenameRegex})`
+    return `must be a valid name (${filenameRegex})`
   }
 
   return true
@@ -113,8 +113,7 @@ const createEnviroment = (name: string, config: GlobalOptions) => {
   const validationResult = isValidName(name, config, true)
 
   if (validationResult !== true) {
-    console.log(`Validation error: ${validationResult}`)
-    throw new Error('Invalid environment name')
+    throw new Error(`Invalid environment name: ${validationResult}`)
   }
 
   const filePath = path.resolve(config.cwd, config.environments.replace('[name]', name))
