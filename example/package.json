@@ -1,0 +1,11 @@
+{
+  "name": "strv-shh-example",
+  "version": "1.0.0",
+  "description": "Example of usage of @strv/shh",
+  "scripts": {
+    "envs": "shh"
+  },
+  "dependencies": {
+    "@strv/shh": "file:.."
+  }
+}
