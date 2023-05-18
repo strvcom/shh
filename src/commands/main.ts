@@ -7,7 +7,7 @@ import { createLogger } from '../lib/utils'
 import { initConfig, addConfigOptions } from '../lib/config'
 import type { GlobalOptions } from '../lib/config'
 import { getEnvironments } from '../lib/environments'
-import { unlock } from '../lib/git-crypt'
+import * as gitCrypt from '../lib/git-crypt'
 
 type Config = GlobalOptions & {
   environment?: string
@@ -55,9 +55,9 @@ const command = new Command()
     const logger = createLogger(config)
 
     // 1. Unlock repository. Ask for key if not available.
-    if (config.encrypt) {
+    if (config.encrypt && !gitCrypt.isConfigured(config)) {
       logger.log('Local repository not configured with Shh yet.')
-      await unlock(config)
+      await gitCrypt.unlock(config)
     }
 
     const environment = await ensureEnvironment(config)
