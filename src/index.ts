@@ -9,6 +9,7 @@ import { command as program } from './commands/main'
 import { command as init } from './commands/init'
 import { command as newEnvironment } from './commands/new'
 import { command as diff } from './commands/diff'
+import { command as exportKey } from './commands/export-key'
 
 program
   // Declare program meta.
@@ -29,6 +30,7 @@ program
   .addCommand(init)
   .addCommand(newEnvironment)
   .addCommand(diff)
+  .addCommand(exportKey)
 
   // Execute.
   .parseAsync(process.argv)

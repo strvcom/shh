@@ -190,7 +190,7 @@ const ensureKey = async (config: GlobalOptions) => {
         {
           name: 'key',
           type: 'input',
-          message: 'Provide a base64 encoded key:',
+          message: 'Provide the shh key (run `shh export-key` to get one):',
           validate: isValidKey,
         },
       ])
@@ -237,4 +237,29 @@ const isConfigured = async (config: GlobalOptions) => {
   return true
 }
 
-export { checkAvailability, configure, unlock, isConfigured }
+/**
+ * Get the status of this repository.
+ */
+const getStatus = async (config: GlobalOptions) => {
+  const paths = getPaths(config)
+
+  // Everything is properly initialized.
+  if (await isConfigured(config)) {
+    return 'ready'
+  }
+
+  // Previous configuration found.
+  if ((await steps.attributes.done(config, paths)) && (await steps.ignore.done(config, paths))) {
+    return 'locked'
+  }
+
+  return 'empty'
+}
+
+/**
+ * Get encoded key.
+ */
+const getKey = (config: GlobalOptions) =>
+  encode(fs.readFileSync(getPaths(config).gitCryptKey, 'binary'))
+
+export { checkAvailability, configure, unlock, isConfigured, getStatus, getKey }
