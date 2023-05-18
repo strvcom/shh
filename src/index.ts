@@ -7,8 +7,10 @@ import * as gitCrypt from './lib/git-crypt'
 
 import { command as program } from './commands/main'
 import { command as init } from './commands/init'
-import { command as newEnvironment } from './commands/new'
 import { command as diff } from './commands/diff'
+import { command as lock } from './commands/lock'
+import { command as unlock } from './commands/unlock'
+import { command as newEnvironment } from './commands/new'
 import { command as exportKey } from './commands/export-key'
 
 program
@@ -16,6 +18,7 @@ program
   .name(pkg.name)
   .description(pkg.description)
   .version(pkg.version)
+  .allowExcessArguments(false)
 
   .hook('preAction', async (command) => {
     const options = command.optsWithGlobals()
@@ -28,8 +31,10 @@ program
 
   // Register sub-commands.
   .addCommand(init)
-  .addCommand(newEnvironment)
   .addCommand(diff)
+  .addCommand(lock)
+  .addCommand(unlock)
+  .addCommand(newEnvironment)
   .addCommand(exportKey)
 
   // Execute.

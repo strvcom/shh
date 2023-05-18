@@ -6,6 +6,17 @@ import type { GlobalOptions } from './config'
 import { getEnvironmentsPattern } from './environments'
 import inquirer from 'inquirer'
 
+interface Files {
+  key: string
+  gitCryptKey: string
+  attributes: string
+  ignore: string
+}
+
+type Config = GlobalOptions & {
+  encodedKey?: string
+}
+
 /**
  * Encode key to base64.
  */
@@ -15,6 +26,11 @@ const encode = (key: string) => Buffer.from(key).toString('base64')
  * Decode key from base64.
  */
 const decode = (key: string) => Buffer.from(key.trim(), 'base64').toString('binary')
+
+/**
+ * Save the current git-crypt used locally.
+ */
+const saveKey = (paths: Files) => execSync(`git-crypt export-key --key-name shh ${paths.key}`)
 
 /**
  * Verifies if it's a valid base64 key.
@@ -36,17 +52,6 @@ const checkAvailability = () => {
   } catch (err) {
     return false
   }
-}
-
-interface Files {
-  key: string
-  gitCryptKey: string
-  attributes: string
-  ignore: string
-}
-
-type Config = GlobalOptions & {
-  encodedKey?: string
 }
 
 /**
@@ -122,7 +127,7 @@ const steps: Record<StepName, Step> = {
           }
 
           // Save git-crypt key for posterior unlock.
-          execSync(`git-crypt export-key --key-name shh ${paths.key}`)
+          saveKey(paths)
         }
       }
     },
@@ -213,6 +218,19 @@ const ensureKey = async (config: GlobalOptions) => {
 }
 
 /**
+ * Lock repository.
+ */
+const lock = async (config: GlobalOptions) => {
+  const paths = getPaths(config)
+
+  // 1. Save key first.
+  saveKey(paths)
+
+  // 2. Lock repository. TODO: support multiple keys?
+  execSync('git-crypt lock -a')
+}
+
+/**
  * Install key and unlock repository.
  */
 const unlock = async (config: GlobalOptions) => {
@@ -262,4 +280,4 @@ const getStatus = async (config: GlobalOptions) => {
 const getKey = (config: GlobalOptions) =>
   encode(fs.readFileSync(getPaths(config).gitCryptKey, 'binary'))
 
-export { checkAvailability, configure, unlock, isConfigured, getStatus, getKey }
+export { checkAvailability, configure, lock, unlock, isConfigured, getStatus, getKey }
