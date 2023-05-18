@@ -217,15 +217,9 @@ const ensureKey = async (config: GlobalOptions) => {
  */
 const unlock = async (config: GlobalOptions) => {
   const paths = getPaths(config)
+  const encodedKey = await ensureKey(config)
 
-  // 1. Ensure git-crypt is configured.
-  if (!(await steps.gitCrypt.done(config, paths))) {
-    const encodedKey = await ensureKey(config)
-    await steps.gitCrypt.run({ ...config, encodedKey }, paths)
-  }
-
-  // 2. Unlock repository.
-  execSync('git-crypt ')
+  await steps.gitCrypt.run({ ...config, encodedKey }, paths)
 }
 
 /**
