@@ -81,7 +81,7 @@ const steps: Record<StepName, Step> = {
       // 2. If git-crypt needs installing.
       if (!fs.existsSync(paths.gitCryptKey)) {
         // 2.a. Unlock using available symetric key.
-        if (fs.existsSync(paths.key) || config.encodedKey) {
+        if (fs.existsSync(paths.key)) {
           execSync(`git-crypt unlock ${paths.key}`)
         }
         // 2.b. Initialize from scratch
