@@ -15,7 +15,7 @@ import { command as exportKey } from './commands/export-key'
 
 program
   // Declare program meta.
-  .name(pkg.name)
+  .name('shh')
   .description(pkg.description)
   .version(pkg.version)
   .allowExcessArguments(false)
