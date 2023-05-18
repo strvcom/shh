@@ -30,16 +30,8 @@ const readTemplate = (config: GlobalOptions) =>
 /**
  * Create template file.
  */
-const createTemplate = async (config: GlobalOptions) => {
+const createTemplate = async (config: GlobalOptions, content: string) => {
   const file = path.resolve(config.cwd, config.template)
-  const { content } = await inquirer.prompt([
-    {
-      name: 'content',
-      type: 'editor',
-      default: defaultTemplate,
-      message: 'Edit the environment template file content',
-    },
-  ])
 
   fs.mkdirSync(path.dirname(file), { recursive: true })
   fs.writeFileSync(file, content, 'utf-8')
@@ -128,6 +120,7 @@ export {
   getEnvironmentsPattern,
   createEnviroment,
   isValidName,
+  defaultTemplate,
   templateExists,
   createTemplate,
   readTemplate,
