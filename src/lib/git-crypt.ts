@@ -50,11 +50,17 @@ type Config = GlobalOptions & {
 }
 
 /**
+ * Find the root of the git repository.
+ */
+const getGitRoot = () =>
+  execSync('git rev-parse --show-toplevel').toString().replace(/\n/g, '').trim()
+
+/**
  * Resolve the paths needed to configure shh & git-crypt.
  */
 const getPaths = (config: GlobalOptions): Files => ({
   key: path.resolve(config.cwd, '.shh-key'),
-  gitCryptKey: path.resolve(config.cwd, '.git/git-crypt/keys/shh'),
+  gitCryptKey: path.resolve(getGitRoot(), '.git/git-crypt/keys/shh'),
   attributes: path.resolve(config.cwd, '.gitattributes'),
   ignore: path.resolve(config.cwd, '.gitignore'),
 })
