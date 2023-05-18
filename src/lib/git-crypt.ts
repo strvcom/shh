@@ -66,6 +66,27 @@ interface Step {
 
 type StepName = 'gitCrypt' | 'attributes' | 'ignore'
 
+/**
+ * Configuration content generation.
+ */
+const generate = {
+  /**
+   * Apply git-crypt-shh filter to encrypted envs.
+   */
+  attributes: (config: Config) =>
+    `${getEnvironmentsPattern(config)} filter=git-crypt-shh diff=git-crypt-shh`,
+
+  /**
+   * 1. Ignore .env
+   * 2. Do NOT ignore encrypted envs if encryption is on.
+   */
+  ignore: (config: Config, content?: string) =>
+    [config.target]
+      .concat(config.encrypt ? [`!${getEnvironmentsPattern(config)}`] : [])
+      .filter((pattern) => !(content && new RegExp(`^${pattern}$`, 'm').test(content)))
+      .join('\n'),
+}
+
 const steps: Record<StepName, Step> = {
   /**
    * .git/shh/key
@@ -110,16 +131,16 @@ const steps: Record<StepName, Step> = {
   attributes: {
     run: (config, { attributes: file }) => {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
-      const append = `${getEnvironmentsPattern(config)} filter=git-crypt-shh diff=git-crypt-shh`
+      const append = generate.attributes(config)
 
       fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
     },
 
     done: (config, { attributes: file }) => {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
-      const append = `${getEnvironmentsPattern(config)} filter=git-crypt-shh diff=git-crypt-shh`
+      const append = generate.attributes(config)
 
-      return content.includes(append)
+      return !config.encrypt || content.includes(append)
     },
   },
 
@@ -129,14 +150,14 @@ const steps: Record<StepName, Step> = {
   ignore: {
     run: (config, { ignore: file }) => {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
-      const append = `${config.target}`
+      const append = generate.ignore(config, content)
 
       fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
     },
 
     done: (config, { ignore: file }) => {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
-      const append = `${config.target}`
+      const append = generate.ignore(config, content)
 
       return content.includes(append)
     },
