@@ -55,7 +55,7 @@ const command = new Command()
     const logger = createLogger(config)
 
     // 1. Unlock repository. Ask for key if not available.
-    if (config.encrypt && !gitCrypt.isConfigured(config)) {
+    if (config.encrypt && !(await gitCrypt.isConfigured(config))) {
       logger.log('Local repository not configured with Shh yet. Unlocking.')
       await gitCrypt.unlock(config)
     }
