@@ -110,14 +110,14 @@ const steps: Record<StepName, Step> = {
   attributes: {
     run: (config, { attributes: file }) => {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
-      const append = `${getEnvironmentsPattern(config)} filter=git-crypt diff=git-crypt`
+      const append = `${getEnvironmentsPattern(config)} filter=git-crypt-shh diff=git-crypt-shh`
 
       fs.writeFileSync(file, [content, append].filter(Boolean).join('\n'))
     },
 
     done: (config, { attributes: file }) => {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
-      const append = `${getEnvironmentsPattern(config)} filter=git-crypt diff=git-crypt`
+      const append = `${getEnvironmentsPattern(config)} filter=git-crypt-shh diff=git-crypt-shh`
 
       return content.includes(append)
     },

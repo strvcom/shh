@@ -48,7 +48,8 @@ const createTemplate = async (config: GlobalOptions) => {
 /**
  * Translate environments pattern into glob pattern.
  */
-const getEnvironmentsPattern = (config: GlobalOptions) => config.environments.replace('[name]', '*')
+const getEnvironmentsPattern = (config: GlobalOptions) =>
+  path.normalize(config.environments.replace('[name]', '*'))
 
 /**
  * Resolve environment paths and their names.
