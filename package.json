@@ -1,6 +1,6 @@
 {
   "name": "@strv/shh",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "CLI tool to manage versioned environment variable files using git-crypt",
   "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
   "license": "MIT",
