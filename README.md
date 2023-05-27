@@ -1,8 +1,8 @@
 <div align="center">
 
-# 🤫
+<h1>🤫<br /><small>@strv/shh</small></h1>
 
-Simple environment variables switcher/manager
+CLI tool to manage versioned environment variable files using [git-crypt](https://www.agwa.name/projects/git-crypt/).
 
 [![npm version](https://badge.fury.io/js/@strv%2Fshh.svg)](https://www.npmjs.com/package/@strv/shh) [![by STRV](https://img.shields.io/badge/by-STRV-ec0d32)](https://www.strv.com/)
 
@@ -10,119 +10,154 @@ Simple environment variables switcher/manager
 
 ## Motivation
 
-This library provides a simple CLI to prevent human mistakes while handling environment variable files.
+While many projects deserve proper secrets handling solution such as [Vault, by HashiCorp](https://www.vaultproject.io/) or [AWS KMS](https://aws.amazon.com/kms/), these solutions are often costy and simply an overkill for more simpler setups. However, manually managing environment variables is a pain and prone to much human mistakes.
+
+Meanwhile, git-crypt has been providing a good solution to [manage your secrets together with your codebase](https://dev.to/heroku/how-to-manage-your-secrets-with-git-crypt-56ih). Although simple, git-crypt is not really feature rich and not at all focused on this particular use-case alone.
+
+Comes `@strv/shh`. Together with git-crypt, this tool will help you:
+
+- Encrypt versioned environment variables
+- Setup CI usage of these environment variables
+- Share environment variables safely with colleagues
+- Compare environment variable of different targets
+- Switch environments locally
+
+## How it works
+
+The main idea here is to have a set of environment files (by default at `./envs/env.[name]`) that are encrypted using git-crypt, and a `.env` symbolic link to one of the available environments.
+
+`@strv/shh` will helps setting this up, and switching/selecting environments both on local machines and on CI.
 
 ## Install
+
+Make sure to have [git-crypt](https://github.com/AGWA/git-crypt) installed. On Mac OS, I recommend using [brew](https://github.com/AGWA/git-crypt/blob/master/INSTALL.md#installing-on-mac-os-x).
 
 ```shell
 npm add @strv/shh --dev
 ```
 
-### Usage
+## Usage
+
+### 1. Setup
+
+The first user should be the one to setup `@strv/shh` on the repository:
 
 ```shell
-yarn shh --help
+npx shh init
 ```
 
-```ts
-// /src/lib/cache-tags.ts
+This command has sensible defaults that can be overriden with extra [options](#options). After initialization, make sure to commit all generated files, and changes made to `.gitattributes` and `.gitignore`.
 
-import { CacheTags, RedisCacheTagsRegistry } from 'next-cache-tags'
+### 2. Save key
 
-export const cacheTags = new CacheTags({
-  registry: new RedisCacheTagsRegistry({
-    url: process.env.CACHE_TAGS_REDIS_URL
-  })
-})
+You'll need the encryption key for other users to use the encrypted files, and for CI decryption. Run the following to get the key:
+
+```sh
+npx shh export-key
 ```
 
-### 3. Tag pages
+The output key can be shared with other developers that are allowed to unlock the environment variables, and used on the CI setup.
 
-On any page that implements `getStaticProps`, register the page with cache tags. Usually, those tags will be related to the page's content – such as a product page and related products:
+> Disclaimer: the output is a base64 encoded secret for easier handling.
 
-```ts
-// /src/pages/product/[id].tsx
+### 3. Unlock
 
-import { cacheTags } from '../../lib/cache-tags'
+After cloning the repository, it's necessary to unlock the environment variable files. Having the key generated on the [step above](#2-save-key), run:
 
-type Product = {
-  id: string
-  name: string
-  relatedProducts: string[]
-}
-
-export const getStaticProps = async (ctx) => {
-  const product: Product = await loadProduct(ctx.param.id)
-  const relatedProducts: Product[] = await loadProducts(product.relatedProducts)
-
-  const ids = [product.id, ...product.relatedProducts]
-  const tags = ids.map(id => `product:${id}`)
-
-  cacheTags.register(ctx, tags)
-
-  return { props: { product, relatedProducts } }
-}
+```sh
+npx shh unlock
 ```
 
-### 4. Create an invalidator
+### 4. Create environments
 
-Upon content updates, usually through webhooks, an API Route should be executed and should process the tags to invalidate.
+Different environments (development, production, etc) are defined by their variable declaring files. By default, this files should be found on `./envs/env.[name]` (replacing `[name]` with the environment name).
 
-`next-cache-tags` provides a factory to create tag invalidation API Routes with ease:
+You can either create new environments by manually create these files, or you can use the following command:
 
-```ts
-// /src/pages/api/webhook.ts
-
-import { cacheTags } from '../../lib/cache-tags'
-
-export default cacheTags.invalidator({
-  resolver: (req) => [req.body.product.id],
-})
+```sh
+npx shh new
 ```
 
-The `resolve` configuration is a function that receives the original request, and should resolve to the list of cache-tags to be invalidated.
+The benefit of using the command is mainly to reuse the template, if set.
 
-Alternatively, you can execute such invalidations manually in any API Route:
+### 5. Switching environments
 
-```ts
-// /src/pages/api/webhook.ts
+Whenever you intend to execute the application under a different environment locally, run the base CLI:
 
-import { cacheTags } from '../../lib/cache-tags'
-
-const handler = (req, res) => {
-  const tags = [req.body.product.id]
-
-  // Dispatch revalidation processes.
-  cacheTags.invalidate(res, tags)
-
-  // ...do any other API Route logic
-}
-
-export default handler
+```sh
+npx shh
 ```
 
-## Example
+### 6. CI
 
-Checkout the [./examples/redis](./examples/redis/) project for a complete, yet simple, use case. This project is deployed [here](https://next-cache-tags-redis-example.vercel.app/alphabet).
+Setup on CI isn't much different than locally. However, we recommend this shortcut:
 
-## Future vision
-
-I expect that eventually Next.js will provide an API for tagging pages. As of data-source for the cache-tags registry, it could the same storage where it stores rendered pages (S3 bucket? Probably...). Alternatively, it could integrate with [Edge Config](https://vercel.com/docs/concepts/edge-network/edge-config) for ultimate availability and performance on writting/reading from the cache-tags registry.
-
-I can imagine that this could become as simple as adding an extra property to the returned object from `getStaticProps`. Something on these lines:
-
-```ts
-// /src/pages/products.tsx
-
-export const getStaticProps = async () => {
-  const products = await loadProducts()
-  const tags = products.map(product => product.id)
-
-  return {
-    tags,
-    props: {
-      products
-    }
-  }
-}
+```sh
+SHH_KEY=[key] npx shh -e [environment]
 ```
+
+`SSH_KEY` becomes the only environment variable that has to be made available manually on the CI admin setup.
+
+#### git-crypt
+
+The main problem to use `@strv/shh` on CI is having git-crypt available, which depends entirely on the OS in use.
+
+[Vercel](https://vercel.com/docs/concepts/deployments/build-image) uses an image based on [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2). `@strv/shh` includes a pre-built git-crypt binary for that image available on `@strv/shh/bin/git-crypt--amazon-linux`, and this binary will be used by default when executing [`unlock`](#3-unlock) command under a Vercel environment, but for safety reasons, we recommend you setup your CI environment following the git-crypt [install instructions](https://github.com/AGWA/git-crypt/blob/master/INSTALL.md).
+
+## Commands & Options
+
+All commands have available options and descriptions available by appending `--help` to the command.
+
+### Global
+
+The following options are available to all commands, and are saved to `.shhrc` in case they differ from the defaults upon initializing. 
+
+|                             | Description                                                                | Default               |
+| --------------------------- | -------------------------------------------------------------------------- | --------------------- |
+| **Global**                  |                                                                            |                       |
+| `-t, --target <path>`       | The path to the managed env file                                           | `".env"`              |
+| `-T, --template <path>`     | The path to the env template file                                          | `"./envs/template"`   |
+| `-E, --environments <path>` | The path pattern to the environment files                                  | `"./envs/env.[name]"` |
+| `-l, --log-level <level>`   | What level of logs to report (choices: "log", "silent", "warn", "nothing") | `"log"`               |
+| `-c, --copy`                | Whether we should install environments using copy instead of symlink       | `false`               |
+| `--no-encrypt`              | Whether we should skip encryption setup (git-crypt)                        |                       |
+
+### Initialize (`npx init`)
+
+Initializes `@strv/shh` and git-crypt setup.
+
+### Switch (`npx shh`)
+
+Switch to an available environment. Options:
+
+|                            | Description                  | Default  |
+| -------------------------- | ---------------------------- | -------- |
+| `-e, --environment <name>` | The environment to switch to | prompted |
+
+### Unlock (`npx unlock`)
+
+Unlock repository using git-crypt. Options:
+
+|                           | Description            | Default  |
+| ------------------------- | ---------------------- | -------- |
+| `-k, --encoded-key <key>` | The base64 encoded key | prompted |
+
+### Lock (`npx lock`)
+
+Locks the repository's and encrypt environment files.
+
+### New environment (`npx new`)
+
+Create a new environment based on the template. Options:
+
+|                            | Description                | Default  |
+| -------------------------- | -------------------------- | -------- |
+| `-e, --environment <name>` | The environment to install | prompted |
+
+### Diff (`npx diff`)
+
+Compares variables available on all environments (including template).
+
+### Export key (`npx export-key`)
+
+Outputs a base64 encoded version of the encryption key.
