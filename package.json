@@ -4,6 +4,7 @@
   "description": "CLI tool to manage versioned environment variable files using git-crypt",
   "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
   "license": "MIT",
+  "homepage": "https://github.com/strvcom/shh",
   "main": "./dist/index.js",
   "private": false,
   "bin": {
