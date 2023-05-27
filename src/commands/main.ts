@@ -55,10 +55,8 @@ const command = new Command()
     const config = initConfig(options)
     const logger = createLogger(config)
 
-    // 1. Unlock repository. Ask for key if not available.
     if (config.encrypt && !(await gitCrypt.isConfigured(config))) {
-      logger.log('Local repository not configured with Shh yet. Unlocking.')
-      await gitCrypt.unlock(config)
+      throw new Error('Repository is locked. Run `shh unlock` to unlock.')
     }
 
     const environment = await ensureEnvironment(config)
@@ -76,10 +74,10 @@ const command = new Command()
     await logger.log(`Installing ${environment.name}`)
 
     try {
-      // 2. Ensure target is clear.
+      // 1. Ensure target is clear.
       fs.rmSync(paths.target, { force: true })
 
-      // 3. Install env file.
+      // 2. Install env file.
       config.copy
         ? fs.copyFileSync(paths.source, paths.target)
         : fs.symlinkSync(paths.source, paths.target)
