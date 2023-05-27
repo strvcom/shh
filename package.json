@@ -1,7 +1,7 @@
 {
   "name": "@strv/shh",
-  "version": "0.1.4",
-  "description": "Simple environment variables switcher/manager.",
+  "version": "0.2.0",
+  "description": "CLI tool to manage versioned environment variable files using git-crypt",
   "author": "Lucas Constantino Silva <lucasconstantinosilva@gmail.com>",
   "license": "MIT",
   "main": "./dist/index.js",
