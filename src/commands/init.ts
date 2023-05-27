@@ -103,19 +103,27 @@ const command = new Command()
     const logger = createLogger(config)
     const input = await getInput(config)
 
-    // 1. Create .shhrc
+    // 1. Configure git-crypt
+    if (config.encrypt) {
+      // 4. Configure git-crypt.
+      await logger.log('Configuring git-crypt')
+      await gitCrypt.configure(config)
+      await logger.log('Configuring git-crypt: ok', true)
+    }
+
+    // 2. Create .shhrc
     await logger.log('Creating .shhrc')
     created = await writeConfig(config)
     await logger.log(`Creating .shhrc: ${created ? 'ok' : 'skipped'}`, true)
 
-    // 2. Optionally create template file.
+    // 3. Optionally create template file.
     if (input.shouldCreateTemplate) {
       await logger.log(`Creating ${config.template}`)
       await createTemplate(config, input.templateContent)
       await logger.log(`Creating ${config.template}: ok`, true)
     }
 
-    // 3. Optionally create environment files.
+    // 4. Optionally create environment files.
     if (input.shouldCreateEnvironments) {
       await logger.log(`Creating environments`)
 
@@ -125,13 +133,6 @@ const command = new Command()
       }
 
       await logger.log(`Creating environments: ok`, true)
-    }
-
-    if (config.encrypt) {
-      // 4. Configure git-crypt.
-      await logger.log('Configuring git-crypt')
-      await gitCrypt.configure(config)
-      await logger.log('Configuring git-crypt: ok', true)
     }
   })
 
