@@ -18,6 +18,25 @@ type Config = GlobalOptions & {
 }
 
 /**
+ * Resolved git-crypt binary path.
+ */
+const binary = (() => {
+  let hasGlobalInstall = false
+
+  try {
+    execSync('which git-crypt')
+    hasGlobalInstall = true
+  } catch (err) {}
+
+  // Special case for Vercel execution.
+  if (!hasGlobalInstall && process.env.VERCEL) {
+    return path.resolve(__dirname, '../../bin/git-crypt--amazon-linux')
+  }
+
+  return 'git-crypt'
+})()
+
+/**
  * Encode key to base64.
  */
 const encode = (key: string) => Buffer.from(key).toString('base64')
@@ -30,7 +49,7 @@ const decode = (key: string) => Buffer.from(key.trim(), 'base64').toString('bina
 /**
  * Save the current git-crypt used locally.
  */
-const saveKey = (paths: Files) => execSync(`git-crypt export-key --key-name shh ${paths.key}`)
+const saveKey = (paths: Files) => execSync(`${binary} export-key --key-name shh ${paths.key}`)
 
 /**
  * Verifies if it's a valid base64 key.
@@ -47,7 +66,7 @@ const isValidKey = (key: string) =>
  */
 const checkAvailability = () => {
   try {
-    execSync('which git-crypt')
+    execSync(`which ${binary}`)
     return true // success
   } catch (err) {
     return false
@@ -114,11 +133,11 @@ const steps: Record<StepName, Step> = {
       if (!fs.existsSync(paths.gitCryptKey)) {
         // 2.a. Unlock using available symetric key.
         if (fs.existsSync(paths.key)) {
-          execSync(`git-crypt unlock ${paths.key}`)
+          execSync(`${binary} unlock ${paths.key}`)
         }
         // 2.b. Initialize from scratch
         else {
-          const spawn = spawnSync('git-crypt', ['init', '--key-name', 'shh'])
+          const spawn = spawnSync(binary, ['init', '--key-name', 'shh'])
           const error = spawn.stderr.toString().trim()
 
           // Throw unnexpected errors, but accept existing git-crypt key.
@@ -227,7 +246,7 @@ const lock = async (config: GlobalOptions) => {
   saveKey(paths)
 
   // 2. Lock repository. TODO: support multiple keys?
-  execSync('git-crypt lock -a')
+  execSync(`${binary} lock -a`)
 }
 
 /**
