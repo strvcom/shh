@@ -83,7 +83,7 @@ const getGitRoot = () =>
  * Resolve the paths needed to configure shh & git-crypt.
  */
 const getPaths = (config: GlobalOptions): Files => ({
-  key: path.resolve(config.cwd, '.shh-key'),
+  key: path.resolve(getGitRoot(), '.git/.shh-key'),
   gitCryptKey: path.resolve(getGitRoot(), '.git/git-crypt/keys/shh'),
   attributes: path.resolve(config.cwd, '.gitattributes'),
   ignore: path.resolve(config.cwd, '.gitignore'),
@@ -112,7 +112,7 @@ const generate = {
    */
   ignore: (config: Config, content?: string) =>
     [config.target]
-      .concat(config.encrypt ? [`!${getEnvironmentsPattern(config)}`, '.shh-key'] : [])
+      .concat(config.encrypt ? [`!${getEnvironmentsPattern(config)}`] : [])
       .filter((pattern) => !(content && new RegExp(`^${pattern}$`, 'm').test(content)))
       .join('\n'),
 }
