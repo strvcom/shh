@@ -10,7 +10,9 @@
     "shh": "./run"
   },
   "files": [
-    "/dist"
+    "/bin",
+    "/dist",
+    "README.md"
   ],
   "scripts": {
     "clean": "rm -Rf ./dist",
