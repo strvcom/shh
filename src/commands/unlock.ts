@@ -9,6 +9,7 @@ import * as gitCrypt from '../lib/git-crypt'
 const command = new Command()
   .name('unlock')
   .description('Unlocks the repository.')
+  .option('-k, --encoded-key <key>', 'The base64 encoded key')
   .action(async () => {
     const options = command.optsWithGlobals()
     const config = initConfig(options)

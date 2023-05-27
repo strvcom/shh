@@ -39,7 +39,7 @@ const isValidKey = (key: string) =>
   !key
     ? 'You must provide a key'
     : !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(key)
-    ? 'You must provide a valid base64 string'
+    ? 'You must provide a valid base64 string as key'
     : true
 
 /**
@@ -191,8 +191,8 @@ const configure = async (config: GlobalOptions) => {
 /**
  * Ensure a encoded key is provided.
  */
-const ensureKey = async (config: GlobalOptions) => {
-  let encodedKey = process.env.SHH_KEY
+const ensureKey = async (config: Config) => {
+  let encodedKey = process.env.SHH_KEY || config.encodedKey
 
   // Let use input on first usage on new clone.
   if (!encodedKey && config.logLevel === 'log') {
@@ -233,7 +233,7 @@ const lock = async (config: GlobalOptions) => {
 /**
  * Install key and unlock repository.
  */
-const unlock = async (config: GlobalOptions) => {
+const unlock = async (config: Config) => {
   const paths = getPaths(config)
   const encodedKey = await ensureKey(config)
 

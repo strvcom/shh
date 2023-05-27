@@ -49,6 +49,7 @@ const ensureEnvironment = async (config: Config) => {
 const command = new Command()
   .allowExcessArguments(false)
   .option('-e, --environment <name>', 'The environment to install')
+  .option('-k, --encoded-key <key>', 'The base64 encoded key')
   .action(async () => {
     const options = command.optsWithGlobals<Config>()
     const config = initConfig(options)
