@@ -14,7 +14,7 @@ const command = new Command()
     const config = initConfig(options)
 
     if (!(await gitCrypt.isConfigured(config))) {
-      throw new Error('Repository is not locked!')
+      throw new Error('Repository is not configured with @strv/shh!')
     }
 
     await gitCrypt.lock(config)
