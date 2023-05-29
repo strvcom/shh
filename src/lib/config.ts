@@ -56,15 +56,15 @@ const defaults: GlobalOptions = {
 // prettier-ignore
 const globalOptions = {
   // Shh configurations.
-  copy: new Option('-c, --copy', 'Whether we should install environments using copy instead of symlink').default(defaults.copy),
-  target: new Option('-t, --target <path>', 'The path to the managed env file').default(defaults.target),
-  template: new Option('-T, --template <path>', 'The path to the env template file').default(defaults.template),
-  environments: new Option('-E, --environments <path>', 'The path pattern to the environment files').default(defaults.environments),
-  encrypt: new Option('--no-encrypt', 'Whether we should skip encryption setup (git-crypt)').default(defaults.encrypt),
+  copy: new Option('-c, --copy', 'Whether we should install environments using copy instead of symlink'),
+  target: new Option('-t, --target <path>', 'The path to the managed env file'),
+  template: new Option('-T, --template <path>', 'The path to the env template file'),
+  environments: new Option('-E, --environments <path>', 'The path pattern to the environment files'),
+  encrypt: new Option('--no-encrypt', 'Whether we should skip encryption setup (git-crypt)'),
 
   // CLI configuraiton
-  cwd: new Option('--cwd <path>', 'The root of the application').default(defaults.cwd),
-  logLevel: new Option('-l, --log-level <level>', 'What level of logs to report').default(defaults.logLevel).choices(['log', 'silent', 'warn', 'nothing']),
+  cwd: new Option('--cwd <path>', 'The root of the application'),
+  logLevel: new Option('-l, --log-level <level>', 'What level of logs to report').choices(['log', 'silent', 'warn', 'nothing']),
 }
 
 /**
