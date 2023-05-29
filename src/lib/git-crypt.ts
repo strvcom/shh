@@ -18,18 +18,38 @@ type Config = GlobalOptions & {
 }
 
 /**
+ * Utility to safely execute commands that might throw errors.
+ */
+const exec = (command: string, throwOnError = false) => {
+  const [_command, ...args] = command.split(' ')
+  const result = spawnSync(_command, args)
+
+  const returned = {
+    ok: result.status === 0,
+    error:
+      result.status !== 0
+        ? result.stderr
+            .toString()
+            .replace(/^\s+|\s+$/, '')
+            .replace(/^Error: /, '')
+        : null,
+    output: result.stdout.toString().replace(/^\s+|\s+$/, ''),
+    result,
+  }
+
+  if (throwOnError && !returned.ok) {
+    throw new Error(returned.error ?? `Failed executing: \`${command}\``)
+  }
+
+  return returned
+}
+
+/**
  * Resolved git-crypt binary path.
  */
 const binary = (() => {
-  let hasGlobalInstall = false
-
-  try {
-    execSync('which git-crypt')
-    hasGlobalInstall = true
-  } catch (err) {}
-
   // Special case for Vercel execution.
-  if (!hasGlobalInstall && process.env.VERCEL) {
+  if (!exec('which git-crypt').ok && process.env.VERCEL) {
     return path.resolve(__dirname, '../../bin/git-crypt--amazon-linux')
   }
 
@@ -49,7 +69,7 @@ const decode = (key: string) => Buffer.from(key.trim(), 'base64').toString('bina
 /**
  * Save the current git-crypt used locally.
  */
-const saveKey = (paths: Files) => execSync(`${binary} export-key --key-name shh ${paths.key}`)
+const saveKey = (paths: Files) => exec(`${binary} export-key --key-name shh ${paths.key}`, true)
 
 /**
  * Verifies if it's a valid base64 key.
@@ -64,26 +84,18 @@ const isValidKey = (key: string) =>
 /**
  * Safely verify if git-crypt is installed.
  */
-const checkAvailability = () => {
-  try {
-    execSync(`which ${binary}`)
-    return true // success
-  } catch (err) {
-    return false
-  }
-}
+const checkAvailability = () => exec(`which ${binary}`).ok
 
 /**
  * Find the root of the git repository.
  */
-const getGitRoot = () =>
-  execSync('git rev-parse --show-toplevel').toString().replace(/\n/g, '').trim()
+const getGitRoot = () => exec('git rev-parse --show-toplevel', true).output
 
 /**
  * Resolve the paths needed to configure shh & git-crypt.
  */
 const getPaths = (config: GlobalOptions): Files => ({
-  key: path.resolve(getGitRoot(), '.git/.shh-key'),
+  key: path.resolve(getGitRoot(), '.git/shh/key'),
   gitCryptKey: path.resolve(getGitRoot(), '.git/git-crypt/keys/shh'),
   attributes: path.resolve(config.cwd, '.gitattributes'),
   ignore: path.resolve(config.cwd, '.gitignore'),
@@ -133,16 +145,15 @@ const steps: Record<StepName, Step> = {
       if (!fs.existsSync(paths.gitCryptKey)) {
         // 2.a. Unlock using available symetric key.
         if (fs.existsSync(paths.key)) {
-          execSync(`${binary} unlock ${paths.key}`)
+          exec(`${binary} unlock ${paths.key}`, true)
         }
         // 2.b. Initialize from scratch
         else {
-          const spawn = spawnSync(binary, ['init', '--key-name', 'shh'])
-          const error = spawn.stderr.toString().trim()
+          const result = exec(`${binary} init --key-name shh`)
 
           // Throw unnexpected errors, but accept existing git-crypt key.
-          if (spawn.status !== 0 && !error.includes('initialized with git-crypt')) {
-            throw new Error(error.replace('Error: ', ''))
+          if (!result.ok && !result.error?.includes('initialized with git-crypt')) {
+            throw new Error(result.error as string)
           }
 
           // Save git-crypt key for posterior unlock.
@@ -246,7 +257,7 @@ const lock = async (config: GlobalOptions) => {
   saveKey(paths)
 
   // 2. Lock repository. TODO: support multiple keys?
-  execSync(`${binary} lock -a`)
+  exec(`${binary} lock --key-name shh`, true)
 }
 
 /**
