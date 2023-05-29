@@ -41,8 +41,10 @@ program
   .parseAsync(process.argv)
 
   // Obfuscate errors on silent mode.
-  .catch((err) =>
-    program.optsWithGlobals<GlobalOptions>().logLevel === 'nothing'
-      ? process.exit(1)
-      : Promise.reject(err)
-  )
+  .catch((err) => {
+    if (program.optsWithGlobals<GlobalOptions>().logLevel !== 'nothing') {
+      console.log('message' in err ? err.message : err)
+    }
+
+    process.exit(1)
+  })
