@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { execSync, spawnSync } from 'child_process'
+import { spawnSync } from 'child_process'
 
 import type { GlobalOptions } from './config'
 import { getEnvironmentsPattern } from './environments'
@@ -50,8 +50,14 @@ const exec = (command: string, throwOnError = false) => {
 const binary = (() => {
   // Special case for Vercel execution.
   if (!exec('which git-crypt').ok && process.env.VERCEL) {
-    return path.resolve(__dirname, '../../bin/git-crypt--amazon-linux')
+    console.log(
+      'USING PATH: ',
+      path.normalize(path.resolve(__dirname, '../../bin/git-crypt--amazon-linux'))
+    )
+    return path.normalize(path.resolve(__dirname, '../../bin/git-crypt--amazon-linux'))
   }
+
+  console.log('USING GLOBAL: git-crypt')
 
   return 'git-crypt'
 })()
