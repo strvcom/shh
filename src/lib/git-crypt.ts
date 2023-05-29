@@ -50,14 +50,8 @@ const exec = (command: string, throwOnError = false) => {
 const binary = (() => {
   // Special case for Vercel execution.
   if (!exec('which git-crypt').ok && process.env.VERCEL) {
-    console.log(
-      'USING PATH: ',
-      path.normalize(path.resolve(__dirname, '../../bin/git-crypt--amazon-linux'))
-    )
-    return path.normalize(path.resolve(__dirname, '../../bin/git-crypt--amazon-linux'))
+    return path.resolve(__dirname, '../../bin/git-crypt--amazon-linux')
   }
-
-  console.log('USING GLOBAL: git-crypt')
 
   return 'git-crypt'
 })()
@@ -141,11 +135,6 @@ const steps: Record<StepName, Step> = {
    */
   gitCrypt: {
     run: (config, paths) => {
-      console.log({
-        paths,
-        key: config.encodedKey,
-      })
-
       // 1. Install any provided key for unlocking.
       if (config.encodedKey) {
         fs.mkdirSync(path.dirname(paths.key), { recursive: true })
