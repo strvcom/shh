@@ -26,7 +26,7 @@ type Answers = {
  */
 const getInput = async (config: GlobalOptions): Promise<Answers> => {
   const questions: Question<Answers>[] = []
-  const environment = getEnvironments(config, true)
+  const environments = getEnvironments(config, true)
 
   if (!templateExists(config)) {
     questions.push({
@@ -45,7 +45,7 @@ const getInput = async (config: GlobalOptions): Promise<Answers> => {
     })
   }
 
-  if (!environment.length) {
+  if (!environments.length) {
     questions.push({
       name: 'shouldCreateEnvironments',
       type: 'confirm',
