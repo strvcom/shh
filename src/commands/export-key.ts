@@ -10,9 +10,7 @@ const command = new Command()
   .name('export-key')
   .description('Export the symetric key')
   .action(async () => {
-    const options = command.optsWithGlobals()
-    const config = initConfig(options)
-
+    const config = initConfig(command.optsWithGlobals())
     const status = await getStatus(config)
 
     // A. Not configured.

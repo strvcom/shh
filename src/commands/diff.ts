@@ -28,8 +28,7 @@ const command = new Command()
   .name('diff')
   .description('Compare environments existing keys')
   .action(async () => {
-    const options = command.optsWithGlobals<Options>()
-    const config = initConfig(options)
+    const config = initConfig(command.optsWithGlobals<Options>())
     const environments = getEnvironments(config, true)
 
     if (!environments.length) {

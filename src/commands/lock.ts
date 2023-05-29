@@ -10,8 +10,7 @@ const command = new Command()
   .name('lock')
   .description('Locks the repository.')
   .action(async () => {
-    const options = command.optsWithGlobals()
-    const config = initConfig(options)
+    const config = initConfig(command.optsWithGlobals())
 
     if (!(await gitCrypt.isConfigured(config))) {
       throw new Error('Repository is not configured with @strv/shh!')

@@ -98,8 +98,7 @@ const command = new Command()
   .action(async () => {
     let created = false
 
-    const options = command.optsWithGlobals()
-    const config = initConfig(options)
+    const config = initConfig(command.optsWithGlobals())
     const logger = createLogger(config)
     const input = await getInput(config)
 

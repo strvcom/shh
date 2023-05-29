@@ -11,8 +11,7 @@ const command = new Command()
   .description('Unlocks the repository.')
   .option('-k, --encoded-key <key>', 'The base64 encoded key')
   .action(async () => {
-    const options = command.optsWithGlobals()
-    const config = initConfig(options)
+    const config = initConfig(command.optsWithGlobals())
 
     if (await gitCrypt.isConfigured(config)) {
       throw new Error('Repository already unlocked!')

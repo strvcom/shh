@@ -51,8 +51,7 @@ const command = new Command()
   .option('-e, --environment <name>', 'The environment to install')
   .option('-k, --encoded-key <key>', 'The base64 encoded key')
   .action(async () => {
-    const options = command.optsWithGlobals<Config>()
-    const config = initConfig(options)
+    const config = initConfig(command.optsWithGlobals<Config>())
     const logger = createLogger(config)
 
     if (config.encrypt && !(await gitCrypt.isConfigured(config))) {
