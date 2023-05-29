@@ -102,7 +102,7 @@ SHH_KEY=[key] npx shh -e [environment]
 
 The main problem to use `@strv/shh` on CI is having git-crypt available, which depends entirely on the OS in use.
 
-[Vercel](https://vercel.com/docs/concepts/deployments/build-image) uses an image based on [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2). `@strv/shh` includes a pre-built git-crypt binary for that image available on `@strv/shh/bin/git-crypt--amazon-linux`, and this binary will be used by default when executing [`unlock`](#3-unlock) command under a Vercel environment, but for safety reasons, we recommend you setup your CI environment following the git-crypt [install instructions](https://github.com/AGWA/git-crypt/blob/master/INSTALL.md).
+[Vercel](https://vercel.com/docs/concepts/deployments/build-image) uses an image based on [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2). `@strv/shh` includes a pre-built git-crypt binary for that image available on `@strv/shh/bin/git-crypt--amazon-linux`, and this binary will be used by default when executing commands under a Vercel environment, but for safety reasons, we recommend you setup your CI environment following the git-crypt [install instructions](https://github.com/AGWA/git-crypt/blob/master/INSTALL.md).
 
 ## Commands & Options
 
