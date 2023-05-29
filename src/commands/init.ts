@@ -105,7 +105,6 @@ const command = new Command()
 
     // 1. Configure git-crypt
     if (config.encrypt) {
-      // 4. Configure git-crypt.
       await logger.log('Configuring git-crypt')
       await gitCrypt.configure(config)
       await logger.log('Configuring git-crypt: ok', true)
