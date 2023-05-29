@@ -141,6 +141,11 @@ const steps: Record<StepName, Step> = {
    */
   gitCrypt: {
     run: (config, paths) => {
+      console.log({
+        paths,
+        key: config.encodedKey,
+      })
+
       // 1. Install any provided key for unlocking.
       if (config.encodedKey) {
         fs.mkdirSync(path.dirname(paths.key), { recursive: true })
