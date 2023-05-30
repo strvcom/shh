@@ -108,13 +108,12 @@ The main problem to use `@strv/shh` on CI is having git-crypt available, which d
 
 All commands have available options and descriptions available by appending `--help` to the command.
 
-### Global
+### Global options
 
 The following options are available to all commands, and are saved to `.shhrc` in case they differ from the defaults upon initializing. 
 
 |                             | Description                                                                | Default               |
 | --------------------------- | -------------------------------------------------------------------------- | --------------------- |
-| **Global**                  |                                                                            |                       |
 | `-t, --target <path>`       | The path to the managed env file                                           | `".env"`              |
 | `-T, --template <path>`     | The path to the env template file                                          | `"./envs/template"`   |
 | `-E, --environments <path>` | The path pattern to the environment files                                  | `"./envs/env.[name]"` |
@@ -122,42 +121,70 @@ The following options are available to all commands, and are saved to `.shhrc` i
 | `-c, --copy`                | Whether we should install environments using copy instead of symlink       | `false`               |
 | `--no-encrypt`              | Whether we should skip encryption setup (git-crypt)                        |                       |
 
-### Initialize (`npx init`)
+<details>
+  <summary><strong>Initialize (<code>npx init</code>)</strong></summary>
+  <hr />
 
-Initializes `@strv/shh` and git-crypt setup.
+  Initializes `@strv/shh` and git-crypt setup.
+  <hr />
+</details>
 
-### Switch (`npx shh`)
+<details>
+  <summary><strong>Switch (<code>npx shh</code>)</strong></summary>
+  <hr />
 
-Switch to an available environment. Options:
+  Switch to an available environment. Options:
 
-|                            | Description                  | Default  |
-| -------------------------- | ---------------------------- | -------- |
-| `-e, --environment <name>` | The environment to switch to | prompted |
+  |                            | Description                  | Default  |
+  | -------------------------- | ---------------------------- | -------- |
+  | `-e, --environment <name>` | The environment to switch to | prompted |
+  <hr />
+</details>
 
-### Unlock (`npx unlock`)
+<details>
+  <summary><strong>Unlock (<code>npx unlock</code>)</strong></summary>
+  <hr />
 
-Unlock repository using git-crypt. Options:
+  Unlock repository using git-crypt. Options:
 
-|                           | Description            | Default  |
-| ------------------------- | ---------------------- | -------- |
-| `-k, --encoded-key <key>` | The base64 encoded key | prompted |
+  |                           | Description            | Default  |
+  | ------------------------- | ---------------------- | -------- |
+  | `-k, --encoded-key <key>` | The base64 encoded key | prompted |
+  <hr />
+</details>
 
-### Lock (`npx lock`)
+<details>
+  <summary><strong>Lock (<code>npx lock</code>)</strong></summary>
+  <hr />
 
-Locks the repository's and encrypt environment files.
+  Locks the repository's and encrypt environment files.
+  <hr />
+</details>
 
-### New environment (`npx new`)
+<details>
+  <summary><strong>New environment (<code>npx new</code>)</strong></summary>
+  <hr />
 
-Create a new environment based on the template. Options:
+  Create a new environment based on the template. Options:
 
-|                            | Description                | Default  |
-| -------------------------- | -------------------------- | -------- |
-| `-e, --environment <name>` | The environment to install | prompted |
+  |                            | Description                | Default  |
+  | -------------------------- | -------------------------- | -------- |
+  | `-e, --environment <name>` | The environment to install | prompted |
+  <hr />
+</details>
 
-### Diff (`npx diff`)
+<details>
+  <summary><strong>Diff (<code>npx diff</code>)</strong></summary>
+  <hr />
 
-Compares variables available on all environments (including template).
+  Compares variables available on all environments (including template).
+  <hr />
+</details>
 
-### Export key (`npx export-key`)
+<details>
+  <summary><strong>Export key (<code>npx export-key</code>)</strong></summary>
+  <hr />
 
-Outputs a base64 encoded version of the encryption key.
+  Outputs a base64 encoded version of the encryption key.
+  <hr />
+</details>
