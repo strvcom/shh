@@ -1,9 +1,13 @@
 import { Command } from 'commander'
 import inquirer from 'inquirer'
 
-import { initConfig, addConfigOptions } from '../lib/config'
+import { initConfig, addConfigOptions, GlobalOptions } from '../lib/config'
 import * as gitCrypt from '../lib/git-crypt'
 import { errors } from '../lib/errors'
+
+type Options = GlobalOptions & {
+  yes?: boolean
+}
 
 /**
  * Locks the repository and unninstall git-crypt.
@@ -11,8 +15,9 @@ import { errors } from '../lib/errors'
 const command = new Command()
   .name('lock')
   .description('Locks the repository.')
+  .option('-y, --yes', 'Confirm YES to warning prompts.')
   .action(async () => {
-    const config = initConfig(command.optsWithGlobals())
+    const config = initConfig<Options>(command.optsWithGlobals())
 
     // Ensure we are at "ready" status.
     gitCrypt.invariantStatus(config, {
@@ -20,7 +25,7 @@ const command = new Command()
       empty: errors.notConfigured(),
     })
 
-    if (config.logLevel === 'log') {
+    if (config.logLevel === 'log' && !config.yes) {
       const confirmed = (
         await inquirer.prompt([
           {
