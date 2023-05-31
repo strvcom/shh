@@ -16,7 +16,7 @@ import * as gitCrypt from '../lib/git-crypt'
 import { errors } from '../lib/errors'
 
 type Options = GlobalOptions & {
-  force?: boolean
+  yes?: boolean
 }
 
 type Answers = {
@@ -34,9 +34,9 @@ const getInput = async (config: Options): Promise<Answers> => {
   const questions: Question<Answers>[] = []
   const environments = getEnvironments(config, true)
   const status = await gitCrypt.getStatus(config)
-  const initialize = status === 'empty' ?? !!config.force
+  const initialize = status === 'empty' ?? !!config.yes
 
-  if (status === 'ready' && !config.force) {
+  if (status === 'ready' && !config.yes) {
     questions.push({
       name: 'initialize',
       type: 'confirm',
@@ -99,7 +99,11 @@ const getInput = async (config: Options): Promise<Answers> => {
   }
 
   return config.logLevel === 'log' && questions.length
-    ? ((await inquirer.prompt(questions, { initialize: config.force })) as Answers)
+    ? ((await inquirer.prompt(questions, {
+        initialize: config.yes,
+        shouldCreateTemplate: config.yes,
+        shouldCreateEnvironments: config.yes,
+      })) as Answers)
     : {
         initialize,
         shouldCreateTemplate: false,
@@ -115,11 +119,11 @@ const getInput = async (config: Options): Promise<Answers> => {
 const command = new Command()
   .name('init')
   .description('Initialize .shhrc config file and install necessary codebase changes.')
-  .option('-f, --force', 'Force initialization')
+  .option('-y, --yes', 'Confirm YES to warning prompts.')
   .action(async () => {
     let created = false
 
-    const config = initConfig(command.optsWithGlobals())
+    const config = initConfig<Options>(command.optsWithGlobals())
     const logger = createLogger(config)
 
     // Ensure we are at "empty" status.
