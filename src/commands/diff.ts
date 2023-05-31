@@ -5,6 +5,7 @@ import { Command } from 'commander'
 import { initConfig, addConfigOptions } from '../lib/config'
 import type { ShhConfig } from '../lib/config'
 import { getEnvironments, readTemplate, templateExists } from '../lib/environments'
+import { createLogger } from '../lib/utils'
 
 type Options = Partial<ShhConfig> & {
   onlyWarnings: boolean
@@ -30,11 +31,12 @@ const command = new Command()
   .action(async () => {
     const config = initConfig(command.optsWithGlobals<Options>())
     const environments = getEnvironments(config, true)
+    const logger = createLogger(config)
 
     if (!environments.length) {
-      console.log(`No environment found at ${config.environments}. Aborting.`)
+      logger.log(`No environment found at ${config.environments}. Aborting.`, true)
 
-      return
+      process.exit(1)
     }
 
     const parsed: ParsedEnvironment[] = []
@@ -87,11 +89,9 @@ const command = new Command()
     }
 
     if (warnings.length) {
-      console.warn(
-        'WARNING: There are either diverging variables or empty variables in some files.'
-      )
+      logger.warn('WARNING: There are either diverging variables or empty variables in some files.')
     } else {
-      console.log('All good!')
+      logger.log('All good!', true)
     }
   })
 

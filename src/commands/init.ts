@@ -133,8 +133,6 @@ const command = new Command()
 
     const input = await getInput(config)
 
-    console.log({ input })
-
     // Skip in case not new or not forcing reinitializing.
     if (!input.initialize) {
       process.exit(1)
