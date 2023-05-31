@@ -4,10 +4,9 @@ import { spawnSync } from 'child_process'
 
 import type { GlobalOptions } from './config'
 import { getEnvironmentsPattern } from './environments'
-import inquirer from 'inquirer'
+import tempy from 'tempy'
 
 interface Files {
-  key: string
   gitCryptKey: string
   attributes: string
   ignore: string
@@ -67,11 +66,6 @@ const encode = (key: string) => Buffer.from(key).toString('base64')
 const decode = (key: string) => Buffer.from(key.trim(), 'base64').toString('binary')
 
 /**
- * Save the current git-crypt used locally.
- */
-const saveKey = (paths: Files) => exec(`${binary} export-key --key-name shh ${paths.key}`, true)
-
-/**
  * Verifies if it's a valid base64 key.
  */
 const isValidKey = (key: string) =>
@@ -95,18 +89,10 @@ const getGitRoot = () => exec('git rev-parse --show-toplevel', true).output
  * Resolve the paths needed to configure shh & git-crypt.
  */
 const getPaths = (config: GlobalOptions): Files => ({
-  key: path.resolve(getGitRoot(), '.git/shh/key'),
   gitCryptKey: path.resolve(getGitRoot(), '.git/git-crypt/keys/shh'),
   attributes: path.resolve(config.cwd, '.gitattributes'),
   ignore: path.resolve(config.cwd, '.gitignore'),
 })
-
-interface Step {
-  run: (config: Config, paths: Files) => void | Promise<void>
-  done: (config: Config, paths: Files) => boolean | Promise<boolean>
-}
-
-type StepName = 'gitCrypt' | 'attributes' | 'ignore'
 
 /**
  * Configuration content generation.
@@ -123,47 +109,34 @@ const generate = {
    * 2. Do NOT ignore encrypted envs if encryption is on.
    */
   ignore: (config: Config, content?: string) =>
-    [config.target]
-      .concat(config.encrypt ? [`!${getEnvironmentsPattern(config)}`] : [])
+    [config.target, `!${getEnvironmentsPattern(config)}`]
       .filter((pattern) => !(content && new RegExp(`^${pattern}$`, 'm').test(content)))
       .join('\n'),
 }
+
+interface Step {
+  run: (config: Config, paths: Files) => void | Promise<void>
+  done: (config: Config, paths: Files) => boolean | Promise<boolean>
+}
+
+type StepName = 'gitCrypt' | 'attributes' | 'ignore'
 
 const steps: Record<StepName, Step> = {
   /**
    * .git/shh/key
    */
   gitCrypt: {
-    run: (config, paths) => {
-      // 1. Install any provided key for unlocking.
-      if (config.encodedKey) {
-        fs.mkdirSync(path.dirname(paths.key), { recursive: true })
-        fs.writeFileSync(paths.key, decode(config.encodedKey), 'binary')
-      }
+    run: () => {
+      const result = exec(`${binary} init --key-name shh`)
 
-      // 2. If git-crypt needs installing.
-      if (!fs.existsSync(paths.gitCryptKey)) {
-        // 2.a. Unlock using available symetric key.
-        if (fs.existsSync(paths.key)) {
-          exec(`${binary} unlock ${paths.key}`, true)
-        }
-        // 2.b. Initialize from scratch
-        else {
-          const result = exec(`${binary} init --key-name shh`)
-
-          // Throw unnexpected errors, but accept existing git-crypt key.
-          if (!result.ok && !result.error?.includes('initialized with git-crypt')) {
-            throw new Error(result.error as string)
-          }
-
-          // Save git-crypt key for posterior unlock.
-          saveKey(paths)
-        }
+      // Throw unnexpected errors, but accept existing git-crypt key.
+      if (!result.ok && !result.error?.includes('initialized with git-crypt')) {
+        throw new Error(result.error as string)
       }
     },
 
     // Safe enough to always run.
-    done: (_config, paths) => fs.existsSync(paths.key) && fs.existsSync(paths.gitCryptKey),
+    done: (_config, paths) => fs.existsSync(paths.gitCryptKey),
   },
 
   /**
@@ -181,7 +154,7 @@ const steps: Record<StepName, Step> = {
       const content = fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : ''
       const append = generate.attributes(config)
 
-      return !config.encrypt || content.includes(append)
+      return content.includes(append)
     },
   },
 
@@ -237,7 +210,7 @@ const unlock = async (key: string) => {
 
   const content = Buffer.from(decode(key), 'binary')
 
-  await temporaryWriteTask(content, (key) => {
+  await tempy.write.task(content, (key) => {
     exec(`${binary} unlock ${key}`, true)
   })
 }

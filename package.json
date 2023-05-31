@@ -30,6 +30,7 @@
     "dotenv": "^16.0.3",
     "glob": "^10.2.3",
     "inquirer": "^8.0.0",
-    "log-update": "4.x.x"
+    "log-update": "4.x.x",
+    "tempy": "1.x.x"
   }
 }
