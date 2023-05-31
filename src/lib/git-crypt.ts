@@ -56,11 +56,6 @@ const binary = (() => {
 })()
 
 /**
- * Encode key to base64.
- */
-const encode = (key: string) => Buffer.from(key).toString('base64')
-
-/**
  * Decode key from base64.
  */
 const decode = (key: string) => Buffer.from(key.trim(), 'base64').toString('binary')
@@ -281,7 +276,7 @@ const invariantStatus = async (config: GlobalOptions, map: Partial<Record<Status
  * Get encoded key.
  */
 const getKey = (config: GlobalOptions) =>
-  encode(fs.readFileSync(getPaths(config).gitCryptKey, 'binary'))
+  fs.readFileSync(getPaths(config).gitCryptKey).toString('base64')
 
 export {
   checkAvailability,
