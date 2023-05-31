@@ -249,16 +249,10 @@ const ensureKey = async (config: Config) => {
 
 /**
  * Lock repository.
+ *
+ * TODO: support multiple keys?
  */
-const lock = async (config: GlobalOptions) => {
-  const paths = getPaths(config)
-
-  // 1. Save key first.
-  saveKey(paths)
-
-  // 2. Lock repository. TODO: support multiple keys?
-  exec(`${binary} lock --key-name shh`, true)
-}
+const lock = async () => exec(`${binary} lock --key-name shh`, true)
 
 /**
  * Install key and unlock repository.
