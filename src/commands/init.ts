@@ -13,8 +13,14 @@ import {
   createEnviroment,
 } from '../lib/environments'
 import * as gitCrypt from '../lib/git-crypt'
+import { errors } from '../lib/errors'
+
+type Options = GlobalOptions & {
+  force?: boolean
+}
 
 type Answers = {
+  initialize: boolean
   shouldCreateTemplate: boolean
   templateContent: string
   shouldCreateEnvironments: boolean
@@ -24,9 +30,20 @@ type Answers = {
 /**
  * Build inquirer questions based on passed-in params.
  */
-const getInput = async (config: GlobalOptions): Promise<Answers> => {
+const getInput = async (config: Options): Promise<Answers> => {
   const questions: Question<Answers>[] = []
   const environments = getEnvironments(config, true)
+  const status = await gitCrypt.getStatus(config)
+  const initialize = status === 'empty' ?? !!config.force
+
+  if (status === 'ready' && !config.force) {
+    questions.push({
+      name: 'initialize',
+      type: 'confirm',
+      default: false,
+      message: 'Repository already configured. Re-initialize?',
+    })
+  }
 
   if (!templateExists(config)) {
     questions.push({
@@ -34,6 +51,7 @@ const getInput = async (config: GlobalOptions): Promise<Answers> => {
       type: 'confirm',
       default: true,
       message: 'No environment template found. Should we create one?',
+      when: (answers) => answers.initialize,
     })
 
     questions.push({
@@ -51,6 +69,7 @@ const getInput = async (config: GlobalOptions): Promise<Answers> => {
       type: 'confirm',
       default: true,
       message: `No environments found  at "${config.environments}". Do you wanna create some?`,
+      when: (answers) => answers.initialize,
     })
 
     questions.push({
@@ -80,8 +99,9 @@ const getInput = async (config: GlobalOptions): Promise<Answers> => {
   }
 
   return config.logLevel === 'log' && questions.length
-    ? ((await inquirer.prompt(questions)) as Answers)
+    ? ((await inquirer.prompt(questions, { initialize: config.force })) as Answers)
     : {
+        initialize,
         shouldCreateTemplate: false,
         templateContent: '',
         shouldCreateEnvironments: false,
@@ -95,6 +115,7 @@ const getInput = async (config: GlobalOptions): Promise<Answers> => {
 const command = new Command()
   .name('init')
   .description('Initialize .shhrc config file and install necessary codebase changes.')
+  .option('-f, --force', 'Force initialization')
   .action(async () => {
     let created = false
 
@@ -107,6 +128,11 @@ const command = new Command()
     })
 
     const input = await getInput(config)
+
+    // Skip in case not new or not forcing reinitializing.
+    if (!input.initialize) {
+      process.exit(1)
+    }
 
     // 1. Configure git-crypt
     await logger.log('Configuring git-crypt')
