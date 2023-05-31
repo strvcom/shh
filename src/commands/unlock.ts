@@ -16,7 +16,7 @@ const command = new Command()
     const config = initConfig(command.optsWithGlobals())
 
     // Ensure we are at "locked" status.
-    gitCrypt.invariantStatus(config, {
+    await gitCrypt.invariantStatus(config, {
       empty: errors.notConfigured,
       ready: errors.unlocked,
     })

@@ -36,10 +36,12 @@ const command = new Command()
     const logger = createLogger(config)
 
     // Ensure we are at "ready" status.
-    gitCrypt.invariantStatus(config, {
+    await gitCrypt.invariantStatus(config, {
       empty: errors.notConfigured,
       locked: errors.locked,
     })
+
+    console.log('ooooopa')
 
     if (!environments.length) {
       logger.log(`No environment found at ${config.environments}. Aborting.`, true)
