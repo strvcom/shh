@@ -17,8 +17,8 @@ interface ParsedEnvironment {
 }
 
 interface Diff {
-  [name: string]: {
-    [variable: string]: 'empty' | 'missing'
+  [variable: string]: {
+    [name: string]: '🟢' | '🟡' | '🔴'
   }
 }
 
@@ -65,26 +65,28 @@ const command = new Command()
     const warnings: string[] = []
     const diff: Diff = {}
 
-    for (const { name, variables } of parsed) {
-      diff[name] = {}
+    for (const variable of allVariables) {
+      diff[variable] = {}
 
-      for (const variable of allVariables) {
+      for (const { name, variables } of parsed) {
         const missing = !(variable in variables)
         const filled = !missing && Boolean(variables[variable])
-        const state = missing ? 'missing' : filled ? 'ok' : 'empty'
+        const state = missing ? '🔴' : filled ? '🟢' : '🟡'
 
-        if (state === 'ok' || (name === 'template' && state === 'empty')) {
+        diff[variable][name] = state
+
+        if (state === '🟢' || (name === 'template' && state === '🟡')) {
           continue
         }
 
-        diff[name][variable] = state
-        warnings.push(variable)
+        warnings.push(name)
       }
     }
 
-    const columns = config.onlyWarnings ? warnings : allVariables
+    const columns = config.onlyWarnings ? warnings : parsed.map((env) => env.name)
 
     if (columns.length) {
+      console.log('\n🟢 = variable set\n🟡 = variable empty\n🔴 = variable missing\n')
       console.table(diff, columns)
     }
 
