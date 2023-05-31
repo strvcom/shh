@@ -119,7 +119,6 @@ The following options are available to all commands, and are saved to `.shhrc` i
 | `-E, --environments <path>` | The path pattern to the environment files                                  | `"./envs/env.[name]"` |
 | `-l, --log-level <level>`   | What level of logs to report (choices: "log", "silent", "warn", "nothing") | `"log"`               |
 | `-c, --copy`                | Whether we should install environments using copy instead of symlink       | `false`               |
-| `--no-encrypt`              | Whether we should skip encryption setup (git-crypt)                        |                       |
 
 <details>
   <summary><strong>Initialize (<code>npx init</code>)</strong></summary>

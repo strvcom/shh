@@ -22,14 +22,9 @@ export interface ShhConfig {
    * The path pattern to the environment files.
    */
   environments: string
-
-  /**
-   * Whether we should encrypt environment files using git-crypt.
-   */
-  encrypt: boolean
 }
 
-const shhConfigKeys = ['copy', 'target', 'template', 'environments', 'encrypt'] as const
+const shhConfigKeys = ['copy', 'target', 'template', 'environments'] as const
 
 export type GlobalOptions = ShhConfig & {
   /**
@@ -48,7 +43,6 @@ const defaults: GlobalOptions = {
   target: '.env',
   template: './envs/template',
   environments: './envs/env.[name]',
-  encrypt: true,
   cwd: process.cwd(),
   logLevel: 'log',
 }
@@ -60,7 +54,6 @@ const globalOptions = {
   target: new Option('-t, --target <path>', 'The path to the managed env file'),
   template: new Option('-T, --template <path>', 'The path to the env template file'),
   environments: new Option('-E, --environments <path>', 'The path pattern to the environment files'),
-  encrypt: new Option('--no-encrypt', 'Whether we should skip encryption setup (git-crypt)'),
 
   // CLI configuraiton
   cwd: new Option('--cwd <path>', 'The root of the application'),
