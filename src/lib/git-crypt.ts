@@ -258,22 +258,50 @@ const isConfigured = async (config: GlobalOptions) => {
 }
 
 /**
- * Get the status of this repository.
+ * Get the states of each configuration step.
  */
-const getStatus = async (config: GlobalOptions) => {
+const getStates = async (config: GlobalOptions) => {
   const paths = getPaths(config)
 
-  // Everything is properly initialized.
-  if (await isConfigured(config)) {
+  return {
+    gitCrypt: await steps.gitCrypt.done(config, paths),
+    attributes: await steps.attributes.done(config, paths),
+    ignore: await steps.ignore.done(config, paths),
+  }
+}
+
+/**
+ * Get the general status of this repository.
+ */
+const getStatus = async (config: GlobalOptions) => {
+  const states = await getStates(config)
+
+  // A. Everything is configured and operational.
+  if (states.gitCrypt && states.attributes && states.ignore) {
     return 'ready'
   }
 
-  // Previous configuration found.
-  if ((await steps.attributes.done(config, paths)) && (await steps.ignore.done(config, paths))) {
+  // B. Configuration found, but no git-crypt installed.
+  if (states.attributes && states.ignore) {
     return 'locked'
   }
 
   return 'empty'
+}
+
+type Status = Awaited<ReturnType<typeof getStatus>>
+
+/**
+ * Throws errors based on statues.
+ */
+const invariantStatus = async (config: GlobalOptions, map: Partial<Record<Status, Error>>) => {
+  const status = await getStatus(config)
+
+  for (const name in map) {
+    if (name === status) {
+      throw map[name]
+    }
+  }
 }
 
 /**
@@ -282,4 +310,14 @@ const getStatus = async (config: GlobalOptions) => {
 const getKey = (config: GlobalOptions) =>
   encode(fs.readFileSync(getPaths(config).gitCryptKey, 'binary'))
 
-export { checkAvailability, configure, lock, unlock, isConfigured, isValidKey, getStatus, getKey }
+export {
+  checkAvailability,
+  configure,
+  lock,
+  unlock,
+  isConfigured,
+  isValidKey,
+  getStatus,
+  getKey,
+  invariantStatus,
+}
