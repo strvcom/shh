@@ -3,6 +3,7 @@ import inquirer from 'inquirer'
 
 import { initConfig, addConfigOptions } from '../lib/config'
 import * as gitCrypt from '../lib/git-crypt'
+import { errors } from '../lib/errors'
 
 /**
  * Unlocks the repository.
@@ -13,15 +14,12 @@ const command = new Command()
   .option('-k, --encoded-key <key>', 'The base64 encoded key')
   .action(async () => {
     const config = initConfig(command.optsWithGlobals())
-    const status = await gitCrypt.getStatus(config)
 
-    if (status === 'ready') {
-      throw new Error('Repository already unlocked!')
-    }
-
-    if (status === 'empty') {
-      throw new Error('Repository not configured. Run `npx shh init`.')
-    }
+    // Ensure we are at "locked" status.
+    gitCrypt.invariantStatus(config, {
+      ready: errors.unlocked(),
+      empty: errors.notConfigured(),
+    })
 
     let encodedKey = process.env.SHH_KEY || config.encodedKey
 
