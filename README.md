@@ -38,37 +38,43 @@ npm add @strv/shh --dev
 
 ## Usage
 
-### 1. Setup
+### First user
 
-The first user should be the one to setup `@strv/shh` on the repository:
+The first user will be the one to setup `@strv/shh` on the repository. Execute the following steps:
 
-```shell
-npx shh init
-```
+1. Setup
 
-This command has sensible defaults that can be overriden with extra [options](#options). After initialization, make sure to commit all generated files, and changes made to `.gitattributes` and `.gitignore`.
+   ```shell
+   npx shh init
+   ```
 
-### 2. Save key
+   This command has sensible defaults that can be overriden with extra [options](#options). After initialization, make sure to commit all generated files, and changes made to `.gitattributes` and `.gitignore`.
 
-You'll need the encryption key for other users to use the encrypted files, and for CI decryption. Run the following to get the key:
+2. Save key
 
-```sh
-npx shh export-key
-```
+   You'll need the to provide other users with the encryption key in order to unlock the repository (or for CI usage). Run the following to get the key:
 
-The output key can be shared with other developers that are allowed to unlock the environment variables, and used on the CI setup.
+   ```sh
+   npx shh export-key
+   ```
 
-> Disclaimer: the output is a base64 encoded secret for easier handling.
+   The output key can be shared with other developers that are allowed to unlock the environment variables, and used on the CI setup.
 
-### 3. Unlock
+   > Disclaimer: the output is a base64 encoded secret for easier handling.
 
-After cloning the repository, it's necessary to unlock the environment variable files. Having the key generated on the [step above](#2-save-key), run:
+### Other users
+
+Whenever doing a fresh clone of the repository, it's necessary to unlock the environment variable files. Having the key generated on the [step above](#2-save-key), run:
 
 ```sh
 npx shh unlock
 ```
 
-### 4. Create environments
+You'll be prompted to provide the key.
+
+### During development
+
+#### Create environments
 
 Different environments (development, production, etc) are defined by their variable declaring files. By default, this files should be found on `./envs/env.[name]` (replacing `[name]` with the environment name).
 
@@ -80,7 +86,7 @@ npx shh new
 
 The benefit of using the command is mainly to reuse the template, if set.
 
-### 5. Switching environments
+### Switching environments
 
 Whenever you intend to execute the application under a different environment locally, run the base CLI:
 
@@ -88,7 +94,7 @@ Whenever you intend to execute the application under a different environment loc
 npx shh
 ```
 
-### 6. CI
+### CI setup
 
 Setup on CI isn't much different than locally. However, we recommend this shortcut:
 
@@ -152,9 +158,9 @@ Switch to an available environment. Options:
 
 Unlock repository using git-crypt. Options:
 
-|                           | Description            | Default  |
-| ------------------------- | ---------------------- | -------- |
-| `-k, --encoded-key <key>` | The base64 encoded key | prompted |
+|                           | Environment variable | Description            | Default  |
+| ------------------------- | -------------------- | ---------------------- | -------- |
+| `-k, --encoded-key <key>` | `SHH_KEY`            | The base64 encoded key | prompted |
 
   <hr />
 </details>
