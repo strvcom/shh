@@ -110,7 +110,7 @@ All commands have available options and descriptions available by appending `--h
 
 ### Global options
 
-The following options are available to all commands, and are saved to `.shhrc` in case they differ from the defaults upon initializing. 
+The following options are available to all commands, and are saved to `.shhrc` in case they differ from the defaults upon initializing.
 
 |                             | Description                                                                | Default               |
 | --------------------------- | -------------------------------------------------------------------------- | --------------------- |
@@ -124,7 +124,12 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>Initialize (<code>npx init</code>)</strong></summary>
   <hr />
 
-  Initializes `@strv/shh` and git-crypt setup.
+Initializes `@strv/shh` and git-crypt setup.
+
+|             | Description                    | Default  |
+| ----------- | ------------------------------ | -------- |
+| `-y, --yes` | Confirm YES to warning prompts | prompted |
+
   <hr />
 </details>
 
@@ -132,11 +137,12 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>Switch (<code>npx shh</code>)</strong></summary>
   <hr />
 
-  Switch to an available environment. Options:
+Switch to an available environment. Options:
 
-  |                            | Description                  | Default  |
-  | -------------------------- | ---------------------------- | -------- |
-  | `-e, --environment <name>` | The environment to switch to | prompted |
+|                            | Description                  | Default  |
+| -------------------------- | ---------------------------- | -------- |
+| `-e, --environment <name>` | The environment to switch to | prompted |
+
   <hr />
 </details>
 
@@ -144,11 +150,12 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>Unlock (<code>npx unlock</code>)</strong></summary>
   <hr />
 
-  Unlock repository using git-crypt. Options:
+Unlock repository using git-crypt. Options:
 
-  |                           | Description            | Default  |
-  | ------------------------- | ---------------------- | -------- |
-  | `-k, --encoded-key <key>` | The base64 encoded key | prompted |
+|                           | Description            | Default  |
+| ------------------------- | ---------------------- | -------- |
+| `-k, --encoded-key <key>` | The base64 encoded key | prompted |
+
   <hr />
 </details>
 
@@ -156,7 +163,12 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>Lock (<code>npx lock</code>)</strong></summary>
   <hr />
 
-  Locks the repository's and encrypt environment files.
+Locks the repository's and encrypt environment files.
+
+|             | Description                    | Default  |
+| ----------- | ------------------------------ | -------- |
+| `-y, --yes` | Confirm YES to warning prompts | prompted |
+
   <hr />
 </details>
 
@@ -164,11 +176,12 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>New environment (<code>npx new</code>)</strong></summary>
   <hr />
 
-  Create a new environment based on the template. Options:
+Create a new environment based on the template. Options:
 
-  |                            | Description                | Default  |
-  | -------------------------- | -------------------------- | -------- |
-  | `-e, --environment <name>` | The environment to install | prompted |
+|                            | Description                | Default  |
+| -------------------------- | -------------------------- | -------- |
+| `-e, --environment <name>` | The environment to install | prompted |
+
   <hr />
 </details>
 
@@ -176,7 +189,8 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>Diff (<code>npx diff</code>)</strong></summary>
   <hr />
 
-  Compares variables available on all environments (including template).
+Compares variables available on all environments (including template).
+
   <hr />
 </details>
 
@@ -184,6 +198,7 @@ The following options are available to all commands, and are saved to `.shhrc` i
   <summary><strong>Export key (<code>npx export-key</code>)</strong></summary>
   <hr />
 
-  Outputs a base64 encoded version of the encryption key.
+Outputs a base64 encoded version of the encryption key.
+
   <hr />
 </details>
