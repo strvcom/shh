@@ -3,6 +3,7 @@ import inquirer from 'inquirer'
 
 import { initConfig, addConfigOptions } from '../lib/config'
 import * as gitCrypt from '../lib/git-crypt'
+import { errors } from '../lib/errors'
 
 /**
  * Locks the repository and unninstall git-crypt.
@@ -13,9 +14,11 @@ const command = new Command()
   .action(async () => {
     const config = initConfig(command.optsWithGlobals())
 
-    if (!(await gitCrypt.isConfigured(config))) {
-      throw new Error('Repository is not locked or not configured with @strv/shh!')
-    }
+    // Ensure we are at "ready" status.
+    gitCrypt.invariantStatus(config, {
+      locked: errors.locked(),
+      empty: errors.notConfigured(),
+    })
 
     if (config.logLevel === 'log') {
       const confirmed = (
