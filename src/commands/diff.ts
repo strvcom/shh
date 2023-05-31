@@ -4,8 +4,10 @@ import { Command } from 'commander'
 
 import { initConfig, addConfigOptions } from '../lib/config'
 import type { ShhConfig } from '../lib/config'
+import * as gitCrypt from '../lib/git-crypt'
 import { getEnvironments, readTemplate, templateExists } from '../lib/environments'
 import { createLogger } from '../lib/utils'
+import { errors } from '../lib/errors'
 
 type Options = Partial<ShhConfig> & {
   onlyWarnings: boolean
@@ -32,6 +34,12 @@ const command = new Command()
     const config = initConfig(command.optsWithGlobals<Options>())
     const environments = getEnvironments(config, true)
     const logger = createLogger(config)
+
+    // Ensure we are at "ready" status.
+    gitCrypt.invariantStatus(config, {
+      empty: errors.notConfigured,
+      locked: errors.locked,
+    })
 
     if (!environments.length) {
       logger.log(`No environment found at ${config.environments}. Aborting.`, true)

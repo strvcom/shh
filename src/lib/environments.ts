@@ -4,6 +4,7 @@ import { globSync } from 'glob'
 import inquirer from 'inquirer'
 
 import type { GlobalOptions } from './config'
+import { errors } from './errors'
 
 export interface Environment {
   file: string
@@ -65,14 +66,14 @@ const getEnvironments = (config: GlobalOptions, allowEmpty = false): Environment
       const name = file.match(regex)?.groups?.name
 
       if (!name) {
-        throw new Error(`Could not resolve enviromnet name for file: "${file}"`)
+        throw errors.environment.unresolvedName(file)
       }
 
       return { file, name, relative: path.relative(config.cwd, file) }
     })
 
   if (!allowEmpty && !environments.length) {
-    throw new Error(`No environments found at "${config.environments}"`)
+    throw errors.environment.noEnvironments(config.environments)
   }
 
   return environments
@@ -106,7 +107,7 @@ const createEnviroment = (name: string, config: GlobalOptions) => {
   const validationResult = isValidName(name, config, true)
 
   if (validationResult !== true) {
-    throw new Error(`Invalid environment name: ${validationResult}`)
+    throw errors.environment.invalidName(validationResult)
   }
 
   const filePath = path.resolve(config.cwd, config.environments.replace('[name]', name))

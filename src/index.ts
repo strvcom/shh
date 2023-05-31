@@ -23,7 +23,7 @@ program
 
   .hook('preAction', async () => {
     if (!gitCrypt.checkAvailability()) {
-      throw errors.gitCrypt.notInstalled()
+      throw errors.gitCrypt.notInstalled
     }
   })
 

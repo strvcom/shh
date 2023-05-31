@@ -2,7 +2,8 @@ import { Command } from 'commander'
 import { stdout } from 'process'
 
 import { initConfig, addConfigOptions } from '../lib/config'
-import { getKey, getStatus } from '../lib/git-crypt'
+import * as gitCrypt from '../lib/git-crypt'
+import { errors } from '../lib/errors'
 
 /**
  * Command to create a new environment file.
@@ -12,19 +13,14 @@ const command = new Command()
   .description('Export the symetric key')
   .action(async () => {
     const config = initConfig(command.optsWithGlobals())
-    const status = await getStatus(config)
 
-    // A. Not configured.
-    if (status === 'empty') {
-      throw new Error('Shh not installed. Please, run `shh init`')
-    }
+    // Ensure we are at "ready" status.
+    gitCrypt.invariantStatus(config, {
+      empty: errors.notConfigured,
+      locked: errors.locked,
+    })
 
-    // B. Installed, locked.
-    if (status === 'locked') {
-      throw new Error('Repository is locked. Please, run `shh` to unlock')
-    }
-
-    stdout.write(getKey(config))
+    stdout.write(gitCrypt.getKey(config))
   })
 
 addConfigOptions(command)

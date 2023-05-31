@@ -17,8 +17,8 @@ const command = new Command()
 
     // Ensure we are at "locked" status.
     gitCrypt.invariantStatus(config, {
-      ready: errors.unlocked(),
-      empty: errors.notConfigured(),
+      empty: errors.notConfigured,
+      ready: errors.unlocked,
     })
 
     let encodedKey = process.env.SHH_KEY || config.encodedKey

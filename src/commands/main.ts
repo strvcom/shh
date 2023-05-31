@@ -18,7 +18,7 @@ type Config = GlobalOptions & {
  * Inquire environment.
  */
 const ensureEnvironment = async (config: Config) => {
-  let selected = config.environment
+  let selected = config.environment as string
   const environments = getEnvironments(config)
 
   // Prompt environment name if possible.
@@ -38,7 +38,7 @@ const ensureEnvironment = async (config: Config) => {
   const environment = environments.find(({ name }) => name === selected)
 
   if (!environment) {
-    throw new Error(`File not found for environment "${selected}".`)
+    throw errors.environment.fileNotFound(selected)
   }
 
   return environment
@@ -57,8 +57,8 @@ const command = new Command()
 
     // Ensure we are at "ready" status.
     gitCrypt.invariantStatus(config, {
-      locked: errors.locked(),
-      empty: errors.notConfigured(),
+      empty: errors.notConfigured,
+      locked: errors.locked,
     })
 
     const environment = await ensureEnvironment(config)
@@ -85,7 +85,7 @@ const command = new Command()
         : fs.symlinkSync(paths.source, paths.target)
     } catch (err) {
       logger.error(err)
-      throw new Error(`Failed creating ${config.target} symlink to ${environment.relative}`)
+      throw errors.symlink(config.target, environment.relative)
     }
 
     await logger.log(`Installing ${environment.name}: ok`, true)

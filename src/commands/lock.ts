@@ -21,8 +21,8 @@ const command = new Command()
 
     // Ensure we are at "ready" status.
     gitCrypt.invariantStatus(config, {
-      locked: errors.locked(),
-      empty: errors.notConfigured(),
+      empty: errors.notConfigured,
+      locked: errors.locked,
     })
 
     if (config.logLevel === 'log' && !config.yes) {

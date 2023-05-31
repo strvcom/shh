@@ -128,7 +128,7 @@ const command = new Command()
 
     // Ensure we are at "empty" status.
     await gitCrypt.invariantStatus(config, {
-      locked: errors.configured(),
+      locked: errors.configured,
     })
 
     const input = await getInput(config)
