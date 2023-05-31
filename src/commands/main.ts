@@ -8,6 +8,7 @@ import { initConfig, addConfigOptions } from '../lib/config'
 import type { GlobalOptions } from '../lib/config'
 import { getEnvironments } from '../lib/environments'
 import * as gitCrypt from '../lib/git-crypt'
+import { errors } from '../lib/errors'
 
 type Config = GlobalOptions & {
   environment?: string
@@ -54,9 +55,11 @@ const command = new Command()
     const config = initConfig(command.optsWithGlobals<Config>())
     const logger = createLogger(config)
 
-    if (config.encrypt && !(await gitCrypt.isConfigured(config))) {
-      throw new Error('Repository is locked. Run `shh unlock` to unlock.')
-    }
+    // Ensure we are at "ready" status.
+    gitCrypt.invariantStatus(config, {
+      locked: errors.locked(),
+      empty: errors.notConfigured(),
+    })
 
     const environment = await ensureEnvironment(config)
 
