@@ -103,11 +103,9 @@ const command = new Command()
     const input = await getInput(config)
 
     // 1. Configure git-crypt
-    if (config.encrypt) {
-      await logger.log('Configuring git-crypt')
-      await gitCrypt.configure(config)
-      await logger.log('Configuring git-crypt: ok', true)
-    }
+    await logger.log('Configuring git-crypt')
+    await gitCrypt.configure(config)
+    await logger.log('Configuring git-crypt: ok', true)
 
     // 2. Create .shhrc
     await logger.log('Creating .shhrc')

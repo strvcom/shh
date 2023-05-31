@@ -12,6 +12,7 @@ import { command as lock } from './commands/lock'
 import { command as unlock } from './commands/unlock'
 import { command as newEnvironment } from './commands/new'
 import { command as exportKey } from './commands/export-key'
+import { errors } from './lib/errors'
 
 program
   // Declare program meta.
@@ -20,12 +21,9 @@ program
   .version(pkg.version)
   .allowExcessArguments(false)
 
-  .hook('preAction', async (command) => {
-    const options = command.optsWithGlobals()
-    const config = initConfig(options)
-
-    if (config.encrypt && !gitCrypt.checkAvailability()) {
-      throw new Error('git-crypt not installed')
+  .hook('preAction', async () => {
+    if (!gitCrypt.checkAvailability()) {
+      throw errors.gitCrypt.notInstalled()
     }
   })
 
