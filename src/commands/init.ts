@@ -100,7 +100,7 @@ const getInput = async (config: Options): Promise<Answers> => {
 
   return config.logLevel === 'log' && questions.length
     ? ((await inquirer.prompt(questions, {
-        initialize: config.yes,
+        initialize: config.yes || status === 'empty',
         shouldCreateTemplate: config.yes,
         shouldCreateEnvironments: config.yes,
       })) as Answers)
@@ -132,6 +132,8 @@ const command = new Command()
     })
 
     const input = await getInput(config)
+
+    console.log({ input })
 
     // Skip in case not new or not forcing reinitializing.
     if (!input.initialize) {
