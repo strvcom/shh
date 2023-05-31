@@ -100,6 +100,12 @@ const command = new Command()
 
     const config = initConfig(command.optsWithGlobals())
     const logger = createLogger(config)
+
+    // Ensure we are at "empty" status.
+    await gitCrypt.invariantStatus(config, {
+      locked: errors.configured(),
+    })
+
     const input = await getInput(config)
 
     // 1. Configure git-crypt
