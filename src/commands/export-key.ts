@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import { stdout } from 'process'
 
 import { initConfig, addConfigOptions } from '../lib/config'
 import { getKey, getStatus } from '../lib/git-crypt'
@@ -23,7 +24,7 @@ const command = new Command()
       throw new Error('Repository is locked. Please, run `shh` to unlock')
     }
 
-    console.log(getKey(config))
+    stdout.write(getKey(config))
   })
 
 addConfigOptions(command)
