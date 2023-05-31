@@ -219,35 +219,6 @@ const configure = async (config: GlobalOptions) => {
 }
 
 /**
- * Ensure a encoded key is provided.
- */
-const ensureKey = async (config: Config) => {
-  let encodedKey = process.env.SHH_KEY || config.encodedKey
-
-  // Let use input on first usage on new clone.
-  if (!encodedKey && config.logLevel === 'log') {
-    encodedKey = (
-      await inquirer.prompt([
-        {
-          name: 'key',
-          type: 'input',
-          message: 'Provide the shh key (run `shh export-key` to get one):',
-          validate: isValidKey,
-        },
-      ])
-    ).key as string
-  }
-
-  const valid = isValidKey(encodedKey as string)
-
-  if (valid !== true) {
-    throw new Error(valid)
-  }
-
-  return encodedKey as string
-}
-
-/**
  * Lock repository.
  *
  * TODO: support multiple keys?
@@ -255,13 +226,20 @@ const ensureKey = async (config: Config) => {
 const lock = async () => exec(`${binary} lock --key-name shh`, true)
 
 /**
- * Install key and unlock repository.
+ * Unlock repository with provided key.
  */
-const unlock = async (config: Config) => {
-  const paths = getPaths(config)
-  const encodedKey = await ensureKey(config)
+const unlock = async (key: string) => {
+  const valid = isValidKey(key as string)
 
-  await steps.gitCrypt.run({ ...config, encodedKey }, paths)
+  if (valid !== true) {
+    throw new Error(valid)
+  }
+
+  const content = Buffer.from(decode(key), 'binary')
+
+  await temporaryWriteTask(content, (key) => {
+    exec(`${binary} unlock ${key}`, true)
+  })
 }
 
 /**
@@ -304,4 +282,4 @@ const getStatus = async (config: GlobalOptions) => {
 const getKey = (config: GlobalOptions) =>
   encode(fs.readFileSync(getPaths(config).gitCryptKey, 'binary'))
 
-export { checkAvailability, configure, lock, unlock, isConfigured, getStatus, getKey }
+export { checkAvailability, configure, lock, unlock, isConfigured, isValidKey, getStatus, getKey }
